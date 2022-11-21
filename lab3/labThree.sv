@@ -40,21 +40,19 @@ module labThree(input clock, input start, input reset, input selectClockDivider,
 	end
 	
 	always @(posedge start) begin
-		if (start) begin
-			RUNNING <= ~RUNNING;
-		end
-		else begin
-			RUNNING <= RUNNING;
-		end
+		RUNNING <= ~RUNNING;
 	end
 	
-	//always @(reset) begin
-	//	RESET_COUNT = ~RESET_COUNT;
-	//end
+	always @(posedge reset) begin
+		RESET_COUNT = ~RESET_COUNT;
+	end
 	
 	always @(posedge fullClock) begin
-		if (RUNNING) begin
+		if (RUNNING & ~RESET_COUNT) begin
 			counter <= counter_d + 1;
+		end
+		else if (~RUNNING & RESET_COUNT) begin
+			counter <= 0;
 		end
 		else begin
 			counter <= counter_d;
