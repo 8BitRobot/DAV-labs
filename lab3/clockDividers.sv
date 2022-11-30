@@ -1,10 +1,12 @@
-module clockDivider100hz(input clock, input enable, output reg newClock);
+module clockDivider100hz(input clock, output reg newClock);
+
 	reg [18:0] counter = 0;
 	always @(posedge clock) begin
-		if (enable) begin
+		/*if (enable) begin
 			counter = 1;
 		end
-		else if (counter == 500000) begin
+		else*/
+		if (counter == 500000) begin
 			counter = 0;
 		end
 		else begin
