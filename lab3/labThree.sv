@@ -1,16 +1,12 @@
 //module labThree(input clock, input start, input reset, input selectClockDivider, output [7:0] dig0, output [7:0] dig1, output [7:0] dig2, output [7:0] dig3, output [7:0] dig4, output [7:0] dig5, output buttonLED);
-module labThree(input [9:0] switches, input clock, input start, input reset, output [7:0] dig0, output [7:0] dig1, output [7:0] dig2, output [7:0] dig3, output [7:0] dig4, output [7:0] dig5, output buttonLED);
+module labThree(input [9:0] switches, input clock, input start, input reset, output [7:0] dig0, output [7:0] dig1, output [7:0] dig2, output [7:0] dig3, output [7:0] dig4, output [7:0] dig5, output buttonLED, output buzzer);
 
-	reg [19:0] counter = 1;
-	
-	
+	reg [19:0] counter = 0;
 	reg [19:0] counter_d = 1;
 	
 	reg RESET_COUNT = 0;
 	reg RUNNING = 0;
 	reg WHEN_TO_RUN = 1;
-	
-	
 	
 	parameter SET = 2'b00;
 	parameter RUN = 2'b01;
@@ -20,48 +16,62 @@ module labThree(input [9:0] switches, input clock, input start, input reset, out
 	reg [1:0] currentState = SET;
 	reg [1:0] nextState = SET;
 	
-	// 00 - don't count up
-	// 01 - count up
-	// 10 - set to 0
+	reg [3:0] flash = 4'b0000;
 	
 	reg clockDivided100 = 0;
-	// reg clockDivided200 = 0;
+	reg clockDividedFlash = 0;
 	
 	// reg fullClock;
 	
 	assign buttonLED = start;
+	
+	reg buzzerClock;
+	
 	// selectClockDivider: 0 - 100hz, 1 - 200hz
 	
-	sevenSegDisp(currentState, dig5, dig4, dig3, dig2, dig1, dig0);
+	sevenSegDisp(counter, {4{currentState[1] & clockDividedFlash}}, dig5, dig4, dig3, dig2, dig1, dig0);
 	
 	clockDivider100hz(clock, clockDivided100);
-	// clockDivider200hz(clock, ~selectClockDivider, clockDivided200);
+	clockDividerFlash(clock, clockDividedFlash);
+	clockDividerBuzzer(clock, buzzerClock);
+	
+	assign buzzer = buzzerClock & currentState[1] & currentState[0];
+	
+	// assign buzzer = clockDivided100;
+	
+	//always @(posedge clockDividedFlash) begin
+	//	if (currentState == PAUSE || currentState == BEEP) begin
+	//		flash = ~flash;
+	//	end
+	//	else begin
+	//		flash = 4'b0000;
+	//	end
+	//end
 	
 	always @(posedge clockDivided100) begin
-		/*
 		case(currentState) 
 			SET: begin
-				counter = switches;
+				counter <= switches * 100;
 			end
 			
 			RUN: begin
-				counter -= 1;
+				counter <= counter - 1;
 			end
 			
 			PAUSE: begin
-				counter = counter;
-				// flash
+				counter <= counter;
 			end
 			BEEP: begin
 				//beep
+				counter <= 0;
 			end
 		endcase
-	*/
-		currentState = nextState;
+	
+		currentState <= nextState;
 	end
 	
 	always_comb begin
-		case(currentState) 
+		case(currentState)
 			SET: begin
 				if (RUNNING == WHEN_TO_RUN) begin
 					nextState = RUN;
@@ -114,11 +124,7 @@ module labThree(input [9:0] switches, input clock, input start, input reset, out
 		endcase	
 	end
 	
-	
-	
-
 	initial begin
-		counter = switches;
 		RUNNING = 0;
 		RESET_COUNT = 0;
 		WHEN_TO_RUN = 1;
