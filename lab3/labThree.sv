@@ -20,7 +20,7 @@ module labThree(input [9:0] switches, input clock, input start, input reset, out
 	
 	reg clockDivided100 = 0;
 	reg clockDividedFlash = 0;
-	
+		
 	// reg fullClock;
 	
 	assign buttonLED = start;
@@ -33,7 +33,8 @@ module labThree(input [9:0] switches, input clock, input start, input reset, out
 	
 	clockDivider100hz(clock, clockDivided100);
 	clockDividerFlash(clock, clockDividedFlash);
-	clockDividerBuzzer(clock, buzzerClock);
+	//clockDividerBuzzer(clock, buzzerClock);
+	clockDividerLab4 #(.SPEED(420)) (clock, buzzerClock);
 	
 	assign buzzer = buzzerClock & currentState[1] & currentState[0];
 	
