@@ -29,13 +29,13 @@ module i2c_driver(i2c_clock, running, deviceAddr, SCLpin, SDApin, counter, stage
 	parameter READ = 6;
 	
 	reg acknowledged = 1;
-	reg [4:0] deviceAddrBitsLeft = 25;
+	reg [4:0] deviceAddrBitsLeft = 27;
 
 	reg SDApin_d;
 
 	initial begin
 		SDApin = 1'b1;
-		counter = 3;
+		counter = 2;
 	end
 	
 	// SCL
@@ -65,7 +65,6 @@ module i2c_driver(i2c_clock, running, deviceAddr, SCLpin, SDApin, counter, stage
 	end
 
 	always_comb begin
-		counterIsZero = (counter == 0);
 		case (stage)
 			START: begin
 				if (totalBits > 3) begin
