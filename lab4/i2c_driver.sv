@@ -1,5 +1,5 @@
 //module i2c_driver(i2c_clock, reset, deviceAddr, addr, numBytes, dataIn, dataOut, write, start, done, SCLpin, SDApin);
-module i2c_driver(i2c_clock, running, deviceAddr, SCLpin, SDApin, counter);
+module i2c_driver(i2c_clock, running, deviceAddr, SCLpin, SDApin, counter, stage);
 	input i2c_clock;
 	input running;
 	input [6:0] deviceAddr;
@@ -15,8 +15,8 @@ module i2c_driver(i2c_clock, running, deviceAddr, SCLpin, SDApin, counter);
 	output SCLpin;
 	inout SDApin;
 	
-	output reg [1:0] counter = 0;
-	reg [2:0] stage = 0;
+	output reg [1:0] counter = 3;
+	output reg [2:0] stage = 0;
 	reg [2:0] stage_d = 0;
 	reg [31:0] totalBits = 0;
 	
@@ -29,26 +29,43 @@ module i2c_driver(i2c_clock, running, deviceAddr, SCLpin, SDApin, counter);
 	parameter READ = 6;
 	
 	reg acknowledged = 1;
-	reg [2:0] deviceAddrBitsLeft = 7;
-	
-	// SCL
-//	always @(posedge i2c_clock or posedge running) begin
-	always @(posedge i2c_clock) begin
-		totalBits <= totalBits + 1;
-		stage <= stage_d;
-		counter <= counter + 1;
+	reg [4:0] deviceAddrBitsLeft = 25;
+
+	reg SDApin_d;
+
+	initial begin
+		SDApin = 1'b1;
+		counter = 3;
 	end
 	
-	always @(posedge (counter == 0)) begin
+	// SCL
+	// end
+	// me
+
+	always @(posedge i2c_clock) begin
+		counter <= counter + 1;
+		totalBits <= totalBits + 1;
+		SDApin <= SDApin_d;
+		
 		if (stage == DEVICE) begin
 			deviceAddrBitsLeft <= deviceAddrBitsLeft - 1;
+			stage <= stage_d;
 		end
 		else begin
-			deviceAddrBitsLeft <= 7;
+			deviceAddrBitsLeft <= deviceAddrBitsLeft;
+			stage <= stage_d;
 		end
+
+		// if (stage == START) begin
+		// 	SDApin <= ~counter[1];
+		// end
+		// else begin
+		// 	SDApin <= SDApin_d;
+		// end
 	end
 
 	always_comb begin
+		counterIsZero = (counter == 0);
 		case (stage)
 			START: begin
 				if (totalBits > 3) begin
@@ -96,25 +113,32 @@ module i2c_driver(i2c_clock, running, deviceAddr, SCLpin, SDApin, counter);
 		case (stage)
 			START: begin
 				case (counter)
-					0: begin SDApin = 1; end
-					1: begin SDApin = 1; end
-					2: begin SDApin = 0; end
-					3: begin SDApin = 0; end
+					0: begin
+						SDApin_d = 1;
+					end
+					1: begin
+						SDApin_d  = 0;
+					end
+					2: begin 
+						SDApin_d = 0; 
+					end
+					3: begin
+						SDApin_d = 1;
+					end
 				endcase
 			end
 			DEVICE: begin
-				SDApin = deviceAddr >> (deviceAddrBitsLeft - 1);
+				SDApin_d = deviceAddr[deviceAddrBitsLeft / 4];
 			end
 			WRITE: begin
-				SDApin = 1;
+				SDApin_d = 1;
 			end
 			ACK: begin
-				SDApin = 1'bz;
+				SDApin_d = 1'bz;
 			end
 			default: begin
-				SDApin = 1'bz;
+				SDApin_d = 1'bz;
 			end
 		endcase
 	end
-	
 endmodule
