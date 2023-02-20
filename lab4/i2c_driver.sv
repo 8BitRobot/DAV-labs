@@ -1,8 +1,9 @@
 //module i2c_driver(i2c_clock, reset, deviceAddr, addr, numBytes, dataIn, dataOut, write, start, done, SCLpin, SDApin);
-module i2c_driver(i2c_clock, running, deviceAddr, SCLpin, SDApin, counter, stage);
+module i2c_driver(i2c_clock, running, deviceAddr, SCLpin, SDApin, counter, stage, addr);
 	input i2c_clock;
 	input running;
 	input [6:0] deviceAddr;
+	input[7:0] addr;
 	
 //	input [7:0] addr;
 //	input [2:0] numBytes;
@@ -22,20 +23,33 @@ module i2c_driver(i2c_clock, running, deviceAddr, SCLpin, SDApin, counter, stage
 	
 	parameter START = 0;
 	parameter DEVICE = 1;
-	parameter ACK = 2;
-	parameter WRITE = 3;
-	parameter REGISTER = 4;
-	parameter DATA = 5;
-	parameter READ = 6;
+	parameter DEVICE_ACK = 2;
+	parameter DEVICE_WRITE = 3;
+	parameter ACK = 4;
+	parameter H1_NEXT = 5;
+	parameter H1 = 6;
+	parameter H1_ACK = 7;
+	parameter H2_NEXT = 8;
+	parameter H2 = 9;
+	parameter H2_ACK = 10;
+	parameter H2_ACK = 11;
+	parameter DATA = 12;
+	parameter READ = 13;
 	
 	reg acknowledged = 1;
 	reg [4:0] deviceAddrBitsLeft = 27;
+	reg [4:0] dataBitsLeft = 31;
+	reg [4:0] dataBytesLeft = 1;
+	
+	reg [7:0] h1bytes [0:1];
 
 	reg SDApin_d;
 
 	initial begin
 		SDApin = 1'b1;
 		counter = 2;
+
+		h1bytes 
 	end
 	
 	// SCL
@@ -76,27 +90,63 @@ module i2c_driver(i2c_clock, running, deviceAddr, SCLpin, SDApin, counter, stage
 			end
 			DEVICE: begin
 				if (totalBits > 31) begin
-					stage_d = WRITE;
+					stage_d = DEVICE_WRITE;
 				end
 				else begin
 					stage_d = DEVICE;
 				end
 			end
-			WRITE: begin
+			DEVICE_WRITE: begin
 				if (totalBits > 35) begin
-					stage_d = ACK;
+					stage_d = DEVICE_ACK;
 				end else begin
-					stage_d = WRITE;
+					stage_d = DEVICE_WRITE;
 				end
 			end
-			ACK: begin
-				if (counter == 3 && SDApin == 1) begin
-					stage_d = REGISTER;
+			DEVICE_ACK: begin
+				if (counter == 2 && SDApin == 0) begin
+					stage_d = H1_NEXT;
 				end
 				else begin
-					stage_d = ACK;
+					stage_d = DEVICE_ACK;
 				end
 			end
+			H1_NEXT: begin
+				if (counter == 3) begin
+					stage_d = H1;
+				end
+				else begin
+					stage_d = H1_NEXT;
+				end
+			end
+			H1: begin
+				if (dataBitsLeft == 0 && dataBytesLeft == 0) begin
+					stage_d = H1_ACK;
+				end
+				else begin
+					stage_d = H1;
+				end
+			end
+			H1_ACK: begin
+				if (counter == 2 && SDApin == 0) begin
+					stage_d = STOP;
+				end
+				else begin
+					stage_d = H1_ACK
+				end
+			end
+			H2_NEXT: begin
+				if (counter == 3) begin
+					stage_d = H2;
+				end
+				else begin
+					stage_d = H2_NEXT;
+				end	
+			end
+			STOP: begin
+				if (dataBytesLeft)
+			end
+			
 			default: begin
 				stage_d = START;
 			end
@@ -129,11 +179,14 @@ module i2c_driver(i2c_clock, running, deviceAddr, SCLpin, SDApin, counter, stage
 			DEVICE: begin
 				SDApin_d = deviceAddr[deviceAddrBitsLeft / 4];
 			end
+			H1: begin
+				SDApin_d = addr[dataBitsLeft / 4];
+			end
 			WRITE: begin
 				SDApin_d = 1;
 			end
 			ACK: begin
-				SDApin_d = 1'bz;
+				SDApin_d = 1'b0;
 			end
 			default: begin
 				SDApin_d = 1'bz;

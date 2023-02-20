@@ -6,6 +6,7 @@ module nunchuckDriver(clock, SDApin, SCLpin, reset, counter, stage);
 	inout SDApin;
 	
 	reg [6:0] deviceAddr = 7'h52;
+	reg [7:0] addr = 8'b11110000
 	
 	reg polling_clock;
 	reg i2c_clock;
@@ -15,7 +16,7 @@ module nunchuckDriver(clock, SDApin, SCLpin, reset, counter, stage);
 	clockDivider #(.SPEED(400000)) i2c (clock, i2c_clock);
 	clockDivider #(.SPEED(100)) polling (clock, polling_Clock);
 	
-	i2c_driver UUT(i2c_clock, running, deviceAddr, SCLpin, SDApin, counter, stage);
+	i2c_driver UUT(i2c_clock, running, deviceAddr, SCLpin, SDApin, counter, stage, addr);
 	
 	always @(negedge reset) begin
 		running = ~running;
