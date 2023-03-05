@@ -14,10 +14,12 @@ module clockDivider(input inClock, output reg outClock, input reset);
 			outClock <= 0;
 		end
 		else begin
-			counter <= counter + 1;
 			if(counter == threshold) begin
 				outClock <= ~outClock;
 				counter <=0;
+			end
+			else begin
+				counter <= counter + 1;
 			end
 		end
 	end

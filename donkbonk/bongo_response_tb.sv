@@ -1,5 +1,5 @@
 `timescale 1ns/1ns
-module bonk_tb (clk, dataPort, dig0, dig1, dataOut, dataClock, readClock, sendingPoll);
+module bongo_response_tb (clk, dataPort, dig0, dig1, dataOut, dataClock, readClock, sendingPoll);
 	output reg clk = 0;
     output dataPort;
 	output dataOut;
