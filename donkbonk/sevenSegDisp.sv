@@ -1,4 +1,4 @@
-module sevenSegDispLetters(value, onSwitch, let5, let4, let3, let2, let1, l );
+module sevenSegDisp(value, onSwitch, let5, let4, let3, let2, let1, l );
 	input onSwitch;
 //	input [19:0] value;
 	input [23:0] value;

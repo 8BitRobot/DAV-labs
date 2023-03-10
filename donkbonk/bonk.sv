@@ -1,4 +1,4 @@
-// module bonk(clk, dataPort, dataOut);
+`timescale 1ns/1ns
 // bönk
 module bonk(clk, dataPort, dig0, dig1, dataOut, dataClock, readClock, sendingPoll);
 	input logic clk;
@@ -11,6 +11,7 @@ module bonk(clk, dataPort, dig0, dig1, dataOut, dataClock, readClock, sendingPol
 	logic plsRespondClock;
 	logic [1:0] plsRespondClock_sr = 2'b0; // shift reg
 	output logic dataClock;
+	logic pll_locked;
 	
 	logic dataIn = 1'b1;
 	logic [99:0] pollingMessage = 100'b0001011100010001000100010001000100010001000100010001000101110111000100010001000100010001000100010111;
@@ -28,18 +29,19 @@ module bonk(clk, dataPort, dig0, dig1, dataOut, dataClock, readClock, sendingPol
 	logic [63:0] received_data = 64'b0;
 	logic [7:0] bongoHit = 8'b0; // bongo button input
 	logic [8:0] bongoScream = 12'b0; // microphone input
- 	 // in honor of cameron screaming because I (claire) was not willing to
-	 // #camsplain #camboss #camera
+ 	// in honor of cameron screaming because I (claire) was not willing to
+	// #camsplain #camboss #camera
 	 
-    clockDivider #(1000000) bonkClock(clk, dataClock, 0); // clock for sending bits
+    // clockDivider #(1000000) bonkClock(clk, dataClock, 0); // clock for sending bits
+	// pll_clk phase_my_fears(0, clk, dataClock, pll_locked);
     clockDivider #(165) downBadClock(clk, plsRespondClock, 0); // clock for polling
 
     IOBuffer bonkData(dataIn, dataOut, sendingPoll == 1, dataPort);
 	 
 	sevenSegDispLetters disp(bongoHit[7:4], bongoHit[3:0], dig1, dig0);
 
-	output logic readClock;
-    clockDivider #(500000) readingDataClock(clk, readClock, sendingPoll != 2); // clock for reading bits
+	output logic readClock = 1;
+   // clockDivider #(500000) readingDataClock(clk, readClock, sendingPoll != 2); // clock for reading bits
 
 	always_comb begin
 		// if (sendingPoll == 1 && counter < NUM_POLL_BITS-1) begin
@@ -77,7 +79,7 @@ module bonk(clk, dataPort, dig0, dig1, dataOut, dataClock, readClock, sendingPol
 				end
 			end
 			2: begin
-				if (receive_counter >= NUM_RECEIVE_BITS - 1) begin
+				if (receive_counter >= NUM_RECEIVE_BITS-1) begin
 					sendingPoll_d <= 0;
 				end
 				else begin
@@ -90,7 +92,9 @@ module bonk(clk, dataPort, dig0, dig1, dataOut, dataClock, readClock, sendingPol
 		endcase
 	end
 	
-	always @(posedge dataClock) begin
+	// always @(posedge dataClock) begin
+	always begin
+		#1000;
 		counter <= counter_d;
 		sendingPoll <= sendingPoll_d;
 
@@ -102,10 +106,17 @@ module bonk(clk, dataPort, dig0, dig1, dataOut, dataClock, readClock, sendingPol
 	end
 
 	always @(posedge readClock) begin
-		received_data[NUM_RECEIVE_BITS - 1 - receive_counter_d] <= dataOut;
+	// always begin
+		// #2000;
+		received_data[NUM_RECEIVE_BITS - receive_counter_d] <= dataOut;
+		if (readClock) begin
+			receive_counter <= receive_counter_d;
+		end
 	end
 
-	always @(posedge readClock, posedge (sendingPoll == 1)) begin
-		receive_counter <= receive_counter_d;
+	//always @(posedge readClock, posedge (sendingPoll == 1)) begin
+	always begin
+		#2000;
+		readClock <= ~readClock;
 	end
 endmodule
