@@ -1,15 +1,16 @@
 `timescale 1ns/1ns
-module bongo_response_tb (clk, pll_clk, dataPort, dataClock, readClock, sendingPoll);
+`define SIMULATION
+module bongo_response_tb (clk, dataPort, dataClock, seg0, seg1, leds);
 	const logic [99:0] POLLING_MESSAGE = 100'b0001011100010001000100010001000100010001000100010001000101110111000100010001000100010001000100010111;
-	const logic [255:0] RETURN_MESSAGE = 256'b0001000100010111000101110001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010111000101110001;	
+	const logic [255:0] RETURN_MESSAGE = 256'h1717171111111111111111111111111111111111111111111111111111171717;
 	output logic clk = 0;
-	output logic pll_clk = 0;
-	inout wire dataPort;
 	output logic dataClock;
-	output logic readClock;
-	output logic [1:0] sendingPoll;
+	inout wire dataPort;
+	
+	output logic [7:0] seg0, seg1;
+	output logic [9:0] leds;
 
-// 10100000000000000000000000000000000000000000000000000000001010
+	// 10100000000000000000000000000000000000000000000000000000001010
 	reg why = 1'bZ;
 	logic [99:0] received_bits = 100'b0;
 	logic receiving = 1;
@@ -18,15 +19,13 @@ module bongo_response_tb (clk, pll_clk, dataPort, dataClock, readClock, sendingP
 	assign dataPort = receiving ? 1'bZ : why;
 
 	always begin
-		#20;
+		#10;
 		clk = ~clk;
 	end
 	
-	always begin
-		// #( (2000 + ($random & 63) * (-1 * ($random & 1))) );
+	always @(posedge dataClock) begin
 		if (receiving) begin
-			#500;
-			pll_clk = ~pll_clk;
+			why = 0;
 			received_bits = {received_bits[98:0], dataPort};
 			if (received_bits == POLLING_MESSAGE) begin
 				// no longer receiving?
@@ -34,7 +33,6 @@ module bongo_response_tb (clk, pll_clk, dataPort, dataClock, readClock, sendingP
 				i = 255;
 				$display("polled!");
 			end
-			#500;
 		end
 		else begin
 			why = RETURN_MESSAGE[i];
@@ -42,10 +40,9 @@ module bongo_response_tb (clk, pll_clk, dataPort, dataClock, readClock, sendingP
 				receiving = 1;
 			end
 			i -= 1;
-			#1000;
 		end
 	end
 	
-	bonk UUT(clk, dataPort, dig0, dig1, dataOut, dataClock, readClock, sendingPoll);
+	ledControl UUT(clk, dataPort, dataClock, seg0, seg1, leds);
 
 endmodule

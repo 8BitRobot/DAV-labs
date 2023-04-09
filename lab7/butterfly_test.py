@@ -1,23 +1,23 @@
 #To Do: #Input values for Testing
 
-a_real = float(2)
-a_imag = float(3)
-b_real = float(1)
-b_imag = float(4)
+a_real = float(20000)
+a_imag = float(30000)
+b_real = float(10000)
+b_imag = float(40000)
 
 for i in range(4):
     if i == 0:
-        w_real = 1
+        w_real = 0.5
         w_imag = 0
     elif i==1:
         w_real = 0
-        w_imag = -1
+        w_imag = -0.5
     elif i==2:
-        w_real = -1
+        w_real = -0.5
         w_imag = 0
     elif i==3:
         w_real = 0
-        w_imag = 1
+        w_imag = 0.5
 
     mult_out_real = b_real * w_real - b_imag * w_imag
     mult_out_imag = b_imag * w_real + b_real * w_imag
