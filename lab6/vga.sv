@@ -13,12 +13,12 @@ module vga(
 	localparam HPIXELS = 640;   // horizontal pixels per line
 	localparam HPULSE = 96; 	// hsync pulse length
 	localparam HBP = 799; 	    // end of horizontal back porch
-	localparam HFP = 656; 	    // end of horizontal front porch
+	localparam HFP = 655; 	    // end of horizontal front porch
 	
 	localparam HLINES = 480;    // vertical lines per frame
 	localparam VPULSE = 2; 	    // vsync pulse length
 	localparam VBP = 524; 		// end of vertical back porch
-	localparam VFP = 490; 	    // end of vertical front porch
+	localparam VFP = 489; 	    // end of vertical front porch
 	
 	// registers for storing the horizontal & vertical counters
 	reg [9:0] hc;
@@ -32,7 +32,7 @@ module vga(
     //Counter block: change hc and vc correspondingly to the current state.
 	always @(posedge vgaclk) begin
 		 //reset condition
-		if (rst == 1) begin
+		if (rst == 0) begin
 			hc <= 0;
 			vc <= 0;
 		end else
