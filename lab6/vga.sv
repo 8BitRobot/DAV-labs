@@ -1,6 +1,11 @@
 module vga(
 		input vgaclk,           //input pixel clock: how fast should this be?
+		input [2:0] input_red,
+		input [2:0] input_green,
+		input [1:0] input_blue,
 		input rst,              //synchronous reset
+		output [9:0] hc_out,
+		output [9:0] vc_out,
 		output hsync,			//horizontal sync out
 		output vsync,			//vertical sync out
 		output reg [3:0] red,	//red vga output
@@ -23,6 +28,9 @@ module vga(
 	// registers for storing the horizontal & vertical counters
 	reg [9:0] hc;
 	reg [9:0] vc;
+
+	assign hc_out = hc;
+	assign vc_out = vc;
 
 	initial begin
 		hc = 0;
@@ -60,9 +68,9 @@ module vga(
 		if (vc < HLINES && hc < HPIXELS)
 		begin
 			//TODO: draw something!
-			red = 4'b1111;
-			green = 0;
-			blue = 0;
+			red = input_red << 1;
+			green = input_green << 1;
+			blue = input_blue << 2;
 		end
 		else begin
             //TODO: we're not in active video range, what do we do?
