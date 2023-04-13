@@ -41,7 +41,7 @@ module bonk(clk, dataPort, dataClock, dig0, dig1, seg0, seg1);
 	// `ifdef SIMULATION
 	// 	clockDivider #(1000000) bonkClock(clk, dataClock, 0); // clock for sending bits
 	// `else
-	pll_clk phase_my_fears(clk, dataClock);
+	plls phase_my_fears(clk, dataClock);
 	//`endif
 	
 	clockDivider #(165) downBadClock(clk, plsRespondClock, 0); // clock for polling
