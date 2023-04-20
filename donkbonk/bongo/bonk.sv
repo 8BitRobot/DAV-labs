@@ -1,10 +1,15 @@
 `timescale 1ns/1ns
 
 // bönk
-module bonk(clk, dataPort, dataClock, dig0, dig1, seg0, seg1);
+module bonk(clk, dataClock, dataPort, dig0, dig1, seg0, seg1);
 	input logic clk;
-	output logic dataClock;
+	input logic dataClock;
 	inout dataPort;
+
+	output logic [3:0] dig0, dig1;
+	output logic [7:0] seg0, seg1;
+	sevenSegDispLetters disp(dig1, dig0, seg1, seg0);
+
 	logic dataOut;
 
 	logic [1:0] sendingPoll;
@@ -41,10 +46,9 @@ module bonk(clk, dataPort, dataClock, dig0, dig1, seg0, seg1);
 	// `ifdef SIMULATION
 	// 	clockDivider #(1000000) bonkClock(clk, dataClock, 0); // clock for sending bits
 	// `else
-	plls phase_my_fears(clk, dataClock);
 	//`endif
 	
-	clockDivider #(165) downBadClock(clk, plsRespondClock, 0); // clock for polling
+	clockDivider downBadClock(clk, 165 * 4, 0, plsRespondClock); // clock for polling
 
 	// `ifdef SIMULATION
 	// 	initial begin
@@ -65,10 +69,6 @@ module bonk(clk, dataPort, dataClock, dig0, dig1, seg0, seg1);
 	
 
     IOBuffer bonkData(dataIn, dataOut, sendingPoll == 1, dataPort);
-	 
-	output logic [3:0] dig0, dig1;
-	output logic [7:0] seg0, seg1;
-	sevenSegDispLetters disp(dig1, dig0, seg1, seg0);
 
 	always @(posedge clk) begin
 		if (sendingPoll == 2) begin

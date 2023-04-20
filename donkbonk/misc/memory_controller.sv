@@ -16,16 +16,18 @@ module memory_controller(clk, addrWrite, dataWrite, addrRead_h, addrRead_v, data
     wire [7:0] outputA;
     wire [7:0] outputB;
 
+	 // IF SIMULATION
     // reg [7:0] ramA [0:767];
     // reg [7:0] ramB [0:767];
-
-    ram ramA(addrA, clk, dataWrite, writeEnableA, outputA);
-    ram ramB(addrB, clk, dataWrite, writeEnableB, outputB);
 
     // initial begin
     //     $readmemb("C:/Users/premg/IEEE/DAV/lab6/ramB.txt", ramB);
     //     $readmemb("C:/Users/premg/IEEE/DAV/lab6/ramA.txt", ramA);
     // end
+	 // IF NOT SIMULATION
+
+    ram ramA(addrA, clk, dataWrite, writeEnableA, outputA);
+    ram ramB(addrB, clk, dataWrite, writeEnableB, outputB);
 
     reg writeEnableA = 1'b1;
     wire writeEnableB;
@@ -35,36 +37,24 @@ module memory_controller(clk, addrWrite, dataWrite, addrRead_h, addrRead_v, data
         if (addrRead_h == 0 && addrRead_v == 0) begin
             writeEnableA <= ~writeEnableA;
         end
-
-        // if (writeEnableA) begin
-        //     ramA[addrWrite] <= dataWrite;
-        //     dataRead <= ramB[addrRead];
-        // end
-        // else begin
-        //     ramB[addrWrite] <= dataWrite;
-        //     dataRead <= ramA[addrRead];
-        // end
     end
 
     always_comb begin
         if (writeEnableA) begin
             addrA = addrWrite;
             addrB = addrRead;
+				// IF SIMULATION
+				// dataRead = ramB[addrB];
+				// IF NOT SIMULATION
             dataRead = outputB;
         end
         else begin
             addrA = addrRead;
             addrB = addrWrite;
+				// IF SIMULATION
+				// dataRead = ramA[addrA];
+				// IF NOT SIMULATION
             dataRead = outputA;
         end
     end
-
-    // assign addrA = (writeEnableA) ? addrWrite : addrRead;
-    // assign addrB = (writeEnableB) ? addrWrite : addrRead;
-
-    // address to write / read from, clock to trigger, data to write?, write enable, output of read
-    // ram rbA(addrA, clk, dataWrite, writeEnableA, outputA);
-    // ram rbB(addrB, clk, dataIn, writeEnableB, outputB);
-    
-    // assign dataRead = (writeEnableA) ? outputB : outputA;
 endmodule

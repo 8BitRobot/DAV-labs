@@ -1,10 +1,10 @@
 // bongoInput = all binary. just. base bongo data
 // clk = 50mhz clock
 
-module ledControl(clk, dataPort, dataClock, seg0, seg1, leds);
+module ledControl(clk, dataClock, dataPort, seg0, seg1, leds);
     input logic clk;
+    input logic dataClock;
 	inout dataPort;
-	output dataClock;
     
     logic sampleClk;
 
@@ -18,9 +18,9 @@ module ledControl(clk, dataPort, dataClock, seg0, seg1, leds);
         mostRecentlyPressed = 2'b00;
     end
 
-    bonk donk(clk, dataPort, dataClock, dig0, dig1, seg0, seg1);
+    bonk donk(clk, dataClock, dataPort, dig0, dig1, seg0, seg1);
 
-    clockDivider #(100000) samplingClock(clk, sampleClk, 0); // clock for polling
+    clockDivider samplingClock(clk, 100000 * 4, 0, sampleClk); // clock for polling
 
     always @(posedge sampleClk) begin
         if ((dig0[3] && dig0[2]) || (dig0[3] && dig0[0]) || (dig0[1] && dig0[2]) || (dig0[1] && dig0[0])) begin  // everything!!
