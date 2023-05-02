@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simPackage>
+ <file
+   path="simulation/submodules/altera_up_avalon_adv_adc.v"
+   type="VERILOG"
+   library="adc_mega_0" />
+ <file
+   path="simulation/submodules/altera_modular_adc_control.v"
+   type="VERILOG"
+   library="adc_mega_0" />
+ <file
+   path="simulation/submodules/altera_modular_adc_control_avrg_fifo.v"
+   type="VERILOG"
+   library="adc_mega_0" />
+ <file
+   path="simulation/submodules/altera_modular_adc_control_fsm.v"
+   type="VERILOG"
+   library="adc_mega_0" />
+ <file
+   path="simulation/submodules/altera_modular_adc_sample_store.v"
+   type="VERILOG"
+   library="adc_mega_0" />
+ <file
+   path="simulation/submodules/altera_modular_adc_sample_store_ram.v"
+   type="VERILOG"
+   library="adc_mega_0" />
+ <file
+   path="simulation/submodules/altera_modular_adc_sequencer.v"
+   type="VERILOG"
+   library="adc_mega_0" />
+ <file
+   path="simulation/submodules/altera_modular_adc_sequencer_csr.v"
+   type="VERILOG"
+   library="adc_mega_0" />
+ <file
+   path="simulation/submodules/altera_modular_adc_sequencer_ctrl.v"
+   type="VERILOG"
+   library="adc_mega_0" />
+ <file
+   path="simulation/submodules/chsel_code_converter_sw_to_hw.v"
+   type="VERILOG"
+   library="adc_mega_0" />
+ <file
+   path="simulation/submodules/DE10_Lite_ADC_Core_modular_adc_0.v"
+   type="VERILOG"
+   library="adc_mega_0" />
+ <file
+   path="simulation/submodules/fiftyfivenm_adcblock_primitive_wrapper.v"
+   type="VERILOG"
+   library="adc_mega_0" />
+ <file
+   path="simulation/submodules/fiftyfivenm_adcblock_top_wrapper.v"
+   type="VERILOG"
+   library="adc_mega_0" />
+ <file
+   path="simulation/submodules/micadc_adc_mega_0.v"
+   type="VERILOG"
+   library="adc_mega_0" />
+ <file path="simulation/micadc.v" type="VERILOG" />
+ <topLevel name="micadc" />
+ <deviceFamily name="max10" />
+</simPackage>

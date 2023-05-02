@@ -31,10 +31,10 @@ initial begin
 	clk = 0;
 	reset = 0;
 	start = 1;
-	in0 = 0;
-	in1 = 1;
-	in2 = 2
-	in3 = 3;
+	in0 = 100;
+	in1 = 200;
+	in2 = 300;
+	in3 = 400;
 end
 
 always begin
