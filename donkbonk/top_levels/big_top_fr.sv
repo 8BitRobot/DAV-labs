@@ -1,7 +1,7 @@
 module big_top_fr(clk, rst, newPiece, dataPort, seg0, seg1, leds, hsync, vsync, red, green, blue);
     //toptoptop
     input clk, rst;
-	input newPiece;
+	 input newPiece;
     inout dataPort;
     output [7:0] seg0, seg1;
     output reg [9:0] leds = 10'b0000100000;

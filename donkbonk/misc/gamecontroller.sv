@@ -2,7 +2,7 @@ module gamecontroller(clk, newPieceTrigger, controls, colorValues);
     localparam BOARD_WIDTH = 40;
     input clk;
     input newPieceTrigger;
-    input reg [1:0] controls;
+    input [1:0] controls;
     output logic [0:79] colorValues [0:11];
     logic [0:BOARD_WIDTH-1] board [0:11];
     logic [0:(BOARD_WIDTH/4) - 1] boardPieceOnly [0:11];
@@ -19,7 +19,7 @@ module gamecontroller(clk, newPieceTrigger, controls, colorValues);
     // parameter KINDOFLIKEANS_PIECE = 3'b110;
     // parameter CLAIRESCURSED_PIECE = 3'b111;
 
-    parameter NO_PIECE     = 4'b0000;
+    // parameter NO_PIECE     = 4'b0000;
     parameter T_PIECE      = 4'b0001;
     parameter SQUARE_PIECE = 4'b0010;
     //parameter ㅁロㄖ口_PIECE = 4'b0010;
@@ -53,7 +53,7 @@ module gamecontroller(clk, newPieceTrigger, controls, colorValues);
     reg [5:0] addrIn;
 	
 	// IF SIMULATION
-	reg [7:0] blockblock [0:63];
+	 reg [7:0] blockblock [0:63];
 
     reg [1:0] controls_left_sr = 2'b0;
     reg [1:0] controls_right_sr = 2'b0;
@@ -89,7 +89,13 @@ module gamecontroller(clk, newPieceTrigger, controls, colorValues);
     always @(posedge clk) begin
         blockenspiel_sr <= {blockenspiel_sr[0], blockenspiel};
         controls_left_sr <= {controls_left_sr[0], controls[0]};
-        controls_right_sr <= 2'b0;
+        controls_right_sr <= {controls_right_sr[0], controls[1]};
+		  
+		  if (controls_left_sr == 2'b01) begin
+			   controls_pulsed <= 2'b10;
+		  end else if (controls_right_sr == 2'b01) begin
+				controls_pulsed <= 2'b01;
+		  end
         
         if (blockenspiel_sr == 2'b01) begin
             if ((| board[11]) || (| nextFrameCollisions)) begin
@@ -117,20 +123,21 @@ module gamecontroller(clk, newPieceTrigger, controls, colorValues);
                     end
                     2'b00: begin
                         for (i = 11; i > 0; i = i - 1) begin
-                            board[i] <= board[i-1] >> 4;
-                            boardPieceOnly[i] <= boardPieceOnly[i-1] >> 1;
+                            board[i] <= board[i-1];
+                            boardPieceOnly[i] <= boardPieceOnly[i-1];
                         end
                     end
                     default: begin
                         for (i = 11; i > 0; i = i - 1) begin
-                            board[i] <= board[i-1] >> 4;
-                            boardPieceOnly[i] <= boardPieceOnly[i-1] >> 1;
+                            board[i] <= board[i-1];
+                            boardPieceOnly[i] <= boardPieceOnly[i-1];
                         end
                     end
                 endcase
                 board[0] <= 0;
                 boardPieceOnly[0] <= 0;
             end
+				controls_pulsed <= 2'b00;
         end
         
         case (piece_fetch_state)
@@ -171,7 +178,7 @@ module gamecontroller(clk, newPieceTrigger, controls, colorValues);
         endcase
         
         if (newPieceTrigger && piece_fetch_state == IDLE) begin
-            piece_to_get <= (piece_to_get + 1) % 9;
+            piece_to_get <= (piece_to_get % 8) + 1;
             piece_fetch_state <= SEND_INDEX;
         end
         else begin
@@ -191,9 +198,6 @@ module gamecontroller(clk, newPieceTrigger, controls, colorValues);
         for (m = 0; m < 11; m = m + 1) begin
             nextFrameCollisions[m] = | (boardPieceOnly[m] & storeboardPieceOnly[m + 1]);
         end
-
-        controls_pulsed[1] = controls_left_sr == 2'b01;
-        controls_pulsed[0] = controls_right_sr == 2'b01;
 
         case(piece_fetch_state) 
             SEND_INDEX: begin

@@ -17,13 +17,13 @@ module memory_controller(clk, addrWrite, dataWrite, addrRead_h, addrRead_v, data
     wire [7:0] outputB;
 
 	 // IF SIMULATION
-    // reg [7:0] ramA [0:767];
-    // reg [7:0] ramB [0:767];
+    //reg [7:0] ramA [0:767];
+    //reg [7:0] ramB [0:767];
 
-    // initial begin
-    //     $readmemb("C:/Users/premg/IEEE/DAV/lab6/ramB.txt", ramB);
-    //     $readmemb("C:/Users/premg/IEEE/DAV/lab6/ramA.txt", ramA);
-    // end
+    //initial begin
+    //    $readmemb("C:/Users/premg/IEEE/DAV/lab6/ramB.txt", ramB);
+    //    $readmemb("C:/Users/premg/IEEE/DAV/lab6/ramA.txt", ramA);
+    //end
 	 // IF NOT SIMULATION
 
     ram ramA(addrA, clk, dataWrite, writeEnableA, outputA);
