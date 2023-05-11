@@ -1,7 +1,7 @@
 module vga_top(clk, rst, newPiece, controls, hsync, vsync, red, green, blue);
     input clk, rst;
 	input newPiece;
-    input [1:0] controls;
+    input [2:0] controls;
     output hsync, vsync;
     output [3:0] red, green, blue;
     

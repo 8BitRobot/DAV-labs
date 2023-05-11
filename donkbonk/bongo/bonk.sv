@@ -1,14 +1,15 @@
 `timescale 1ns/1ns
 
 // bönk
-module bonk(clk, dataClock, dataPort, dig0, dig1, seg0, seg1);
+module bonk(clk, dataClock, dataPort, bongoHit, bongoScream);
 	input logic clk;
 	input logic dataClock;
 	inout dataPort;
 
-	output logic [3:0] dig0, dig1;
-	output logic [7:0] seg0, seg1;
-	sevenSegDispLetters disp(dig1, dig0, seg1, seg0);
+	output logic [7:0] bongoHit;
+	output logic [11:0] bongoScream;
+	// output logic [7:0] seg0, seg1;
+	// sevenSegDispLetters disp(bongoScream[11:8], bongoScream[7:4], seg1, seg0);
 
 	logic dataOut;
 
@@ -36,37 +37,14 @@ module bonk(clk, dataClock, dataPort, dig0, dig1, seg0, seg1);
 	logic [11:0] bitLength;
 
 	logic [63:0] received_data = 64'b0;
-	logic [7:0] bongoHit = 8'b0; // bongo button input
-	logic [8:0] bongoScream = 12'b0; // microphone input
+	// logic [7:0] bongoHit = 8'b0; // bongo button input
+	// logic [8:0] bongoScream = 12'b0; // microphone input
  	// in honor of cameron screaming because I (claire) was not willing to
 	// #camsplain #camboss #camera
 
 	logic dataClockTest;
 	 
-	// `ifdef SIMULATION
-	// 	clockDivider #(1000000) bonkClock(clk, dataClock, 0); // clock for sending bits
-	// `else
-	//`endif
-	
 	clockDivider downBadClock(clk, 165 * 4, 0, plsRespondClock); // clock for polling
-
-	// `ifdef SIMULATION
-	// 	initial begin
-	// 		dataClock = 0;
-	// 		plsRespondClock = 0;
-	// 	end
-		
-	// 	always begin
-	// 		#500;
-	// 		dataClock = ~dataClock;
-	// 	end
-
-	// 	always begin
-	// 		#3000000;
-	// 		plsRespondClock = ~plsRespondClock;
-	// 	end
-	// `endif
-	
 
     IOBuffer bonkData(dataIn, dataOut, sendingPoll == 1, dataPort);
 
@@ -133,14 +111,15 @@ module bonk(clk, dataClock, dataPort, dig0, dig1, seg0, seg1);
 
 		if (received_data[63:56] > 8'h35) begin
 			bongoHit = received_data[63:56] >> 1;
+			bongoScream = received_data[11:0] >> 1;
 		end else begin
 			bongoHit = received_data[63:56];
+			bongoScream = received_data[11:0];
 		end
 		
-		dig1 = bongoHit[7:4];
-		dig0 = bongoHit[3:0];
+		// dig1 = bongoHit[7:4];
+		// dig0 = bongoHit[3:0];
 		
-		bongoScream = received_data[11:0];
 
 		case (sendingPoll)
 			0: begin //nothing happening

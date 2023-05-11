@@ -4,7 +4,7 @@ module gamecontroller(clk, newPieceTrigger, controls, colorValues);
     // ports
     input clk;
     input newPieceTrigger;
-    input [1:0] controls;
+    input [2:0] controls;
     output logic [0:79] colorValues [0:11];
 
     // board arrays
@@ -26,6 +26,7 @@ module gamecontroller(clk, newPieceTrigger, controls, colorValues);
     parameter S_PIECE      = 4'b0110;
     parameter LINE_PIECE   = 4'b0111;
     parameter CURSED_PIECE = 4'b1000;
+    parameter FLASH_COLOR  = 4'b1001;
 
     // piece fetch FSM
     parameter SEND_INDEX   = 3'b000;
@@ -41,13 +42,16 @@ module gamecontroller(clk, newPieceTrigger, controls, colorValues);
     reg [7:0] current_piece_addr;
     reg [3:0] piece_to_get = SQUARE_PIECE;
     reg [3:0] moving_piece [3:0];
+    reg [3:0] moving_piece_x;
+    reg [3:0] moving_piece_y;
 
     //  piece drop FSM
     parameter READY    = 3'b000;
     parameter FALLING  = 3'b001;
-    parameter CLEARING = 3'b010;
-    parameter UPDATING = 3'b011;
-    parameter STORING  = 3'b100;
+    parameter FLASHING = 3'b010;
+    parameter CLEARING = 3'b011;
+    parameter UPDATING = 3'b100;
+    parameter STORING  = 3'b101;
 
     reg [2:0] piece_drop_state = READY;
     reg [2:0] piece_drop_state_d;
@@ -55,28 +59,35 @@ module gamecontroller(clk, newPieceTrigger, controls, colorValues);
 	reg [0:11] lineClearable_saved;
     wire [1:0] linesToShift [0:11];
 	reg [1:0] linesToShift_saved [0:11];
+
+    reg [2:0] flashCounter = 0;
     // reg [1:0] linesToShift_ [0:11];
 
     // controls
-    parameter RIGHT = 2'b01;
-    parameter LEFT = 2'b10;
-    parameter DOWN = 2'b00;
-    parameter BOTH = 2'b11;
+    parameter RIGHT = 3'b001;
+    parameter LEFT = 3'b010;
+    parameter DOWN = 3'b000;
+    parameter BOTH = 3'b011;
 
     reg [1:0] controls_left_sr = 2'b0;
     reg [1:0] controls_right_sr = 2'b0;
+    reg [1:0] controls_scream_sr = 2'b0;
+
 
     // control restrictions
-    reg [1:0] controls_pulsed;
+    reg [2:0] controls_pulsed;
     reg [0:10] canMoveLeft;
     reg [0:10] canMoveRight;
-    reg [1:0] canMoveLeftRight;
+    reg [2:0] canMoveLeftRight;
     reg [0:10] nextFrameCollisions;
+
+    // rotation
+    reg [1:0] rotationState;
     
     // ROM
     reg [7:0] dataOut;
-    reg [5:0] addrIn;
-	reg [7:0] blockblock [0:127];
+    reg [6:0] addrIn;
+	reg [7:0] blockblock [0:89];
 	 
     // iterators
     integer i, j, k, l, m, n, q, r;
@@ -91,7 +102,7 @@ module gamecontroller(clk, newPieceTrigger, controls, colorValues);
     reg [1:0] sidetoside_sr;
     
     initial begin
-        $readmemb("C:/Users/premg/IEEE/DAV/donkbonk/rom/rom_init.txt", blockblock);
+        $readmemb("C:/Users/premg/IEEE/DAV/donkbonk/rom/rom_init_formatted.txt", blockblock);
         for (i = 0; i < 12; i = i + 1) begin
             board[i] = 40'b0;
             boardPieceOnly[i] = 10'b0;
@@ -106,10 +117,10 @@ module gamecontroller(clk, newPieceTrigger, controls, colorValues);
 		// storeboardPieceOnly[5]  = 10'b1000000001;
 		// storeboardPieceOnly[6]  = 10'b1000000001;
 		// storeboardPieceOnly[7]  = 10'b1000000001;
-		// storeboardPieceOnly[8]  = 10'b1000000001;
-		// storeboardPieceOnly[9]  = 10'b1110000001;
+		// storeboardPieceOnly[8]  = 10'b1000000111;
+		// storeboardPieceOnly[9]  = 10'b1000000111;
 		// storeboardPieceOnly[10] = 10'b1111001111;
-		// storeboardPieceOnly[11] = 10'b1111111011;
+		// storeboardPieceOnly[11] = 10'b1111001111;
     end
 	// IF NOT SIMULATION
 	
@@ -129,34 +140,40 @@ module gamecontroller(clk, newPieceTrigger, controls, colorValues);
         blockenspiel_sr <= {blockenspiel_sr[0], blockenspiel};
         controls_left_sr <= {controls_left_sr[0], controls[1]};
         controls_right_sr <= {controls_right_sr[0], controls[0]};
+        controls_scream_sr <= {controls_scream_sr[0], controls[2]};
         sidetoside_sr <= {sidetoside_sr[0], sidetoside};
 		  
         if (controls_left_sr == 2'b01) begin
-            controls_pulsed <= 2'b10;
+            controls_pulsed <= 3'b010;
         end else if (controls_right_sr == 2'b01) begin
-            controls_pulsed <= 2'b01;
+            controls_pulsed <= 3'b001;
+        end else if (controls_scream_sr) begin
+            controls_pulsed <= 3'b100;
         end
         
         case (piece_drop_state)
-            READY: begin
-            end
             FALLING: begin
                 if (sidetoside_sr == 2'b01) begin
-                    case(controls_pulsed & canMoveLeftRight)
+                    case(controls_pulsed[1:0] & canMoveLeftRight)
                         RIGHT: begin //  move right
                             for (i = 11; i > 0; i = i - 1) begin
                                 board[i] <= board[i] >> 4;
                                 boardPieceOnly[i] <= boardPieceOnly[i] >> 1;
                             end
+                            moving_piece_x <= moving_piece_x - 1;
                         end
                         LEFT: begin
                             for (i = 11; i > 0; i = i - 1) begin
                                 board[i] <= board[i] << 4;
                                 boardPieceOnly[i] <= boardPieceOnly[i] << 1;
                             end
+                            moving_piece_x <= moving_piece_x + 1;
                         end
                     endcase
                     controls_pulsed <= 2'b00;
+                end
+                if (controls_pulsed[2]) begin // idk
+                    
                 end
                 if (blockenspiel_sr == 2'b01) begin
                     for (i = 11; i > 0; i = i - 1) begin
@@ -165,47 +182,45 @@ module gamecontroller(clk, newPieceTrigger, controls, colorValues);
                     end
                     board[0] <= 0;
                     boardPieceOnly[0] <= 0;
+                    moving_piece_y <= moving_piece_y + 1;
+                end
+            end
+            FLASHING: begin
+                if (blockenspiel_sr == 2'b01) begin
+                    flashCounter <= flashCounter + 1;
                 end
             end
             CLEARING: begin
                 for (n = 0; n < 12; n = n + 1) begin
-                    if (lineClearable[n]) begin
+                    if (lineClearable_saved[n]) begin
+                        storeboard[n] <= 0;
                         board[n] <= 0;
                         boardPieceOnly[n] <= 0;
-                        storeboard[n] <= 0;
                         storeboardPieceOnly[n] <= 0;
                     end
-					lineClearable_saved[n] <= lineClearable[n];
-					linesToShift_saved[n] <= linesToShift[n];
+                    // lineClearable_saved[n] <= lineClearable[n];
+                    // linesToShift_saved[n] <= linesToShift[n];
                 end
             end
             UPDATING: begin
                 // num ones for
                 for (q = 11; q > 0; q = q - 1) begin
-                    if ((q - linesToShift_saved[q]) >= 0) begin
-                        boardPieceOnly[q] <= boardPieceOnly[q - linesToShift_saved[q]];
-                        storeboardPieceOnly[q] <= storeboardPieceOnly[q - linesToShift_saved[q]];
-                        board[q] <= board[q - linesToShift_saved[q]];
-                        storeboard[q] <= storeboard[q - linesToShift_saved[q]];
+                    if ((q - (linesToShift[q] > 0)) >= 0) begin
+                        boardPieceOnly[q] <= boardPieceOnly[q - (linesToShift[q] > 0)];
+                        storeboardPieceOnly[q] <= storeboardPieceOnly[q - (linesToShift[q] > 0)];
+                        board[q] <= board[q - (linesToShift[q] > 0)];
+                        storeboard[q] <= storeboard[q - (linesToShift[q] > 0)];
                     end else begin
                         boardPieceOnly[q] <= 0;
                         storeboardPieceOnly[q] <= 10'b1000000001;
                         board[q] <= 0;
                         storeboard[q] <= 0;
                     end
-                    /*
-                    if (lineClearable_saved[q]) begin
-                        continue;
-                    end else begin
-                        boardPieceOnly[q] <= boardPieceOnly[(q - linesToShift_saved[q] >= 0) ? (q - linesToShift_saved[q]) : 0];
-                        storeboardPieceOnly[q] <= storeboardPieceOnly[(q - linesToShift_saved[q] >= 0) ? (q - linesToShift_saved[q]) : q];
-                    end
-                    */
                 end
-                for (r = 0; r < 12; r = r + 1) begin
-                    linesToShift_saved[r] <= 0;
-                    lineClearable_saved[n] <= 0;
-                end
+                // for (r = 0; r < 12; r = r + 1) begin
+                //     linesToShift_saved[r] <= linesToShift[r];
+                //     lineClearable_saved[r] <= lineClearable[r];
+                // end
             end
             STORING: begin
                 for (i = 0; i < 12; i = i + 1) begin
@@ -228,7 +243,7 @@ module gamecontroller(clk, newPieceTrigger, controls, colorValues);
             end
             SEND_ADDRESS: begin
                 current_piece_addr <= dataOut;
-                addrIn <= {1'b0, dataOut[3:0], 1'b0};
+                addrIn <= dataOut[6:0];
             end
             GET_PIECE_1: begin
                 addrIn <= addrIn + 1;
@@ -236,7 +251,7 @@ module gamecontroller(clk, newPieceTrigger, controls, colorValues);
                 moving_piece[1] <= dataOut[3:0];
             end
             GET_PIECE_2: begin
-                addrIn <= 6'b0;
+                addrIn <= 7'b0;
                 moving_piece[2] <= dataOut[7:4];
                 moving_piece[3] <= dataOut[3:0];
             end
@@ -250,9 +265,11 @@ module gamecontroller(clk, newPieceTrigger, controls, colorValues);
                         end
                     end
                 end
+                moving_piece_x <= 3;
+                moving_piece_y <= 0;
             end
             IDLE: begin
-                addrIn <= 6'b0;
+                addrIn <= 7'b0;
             end
         endcase
 
@@ -260,7 +277,7 @@ module gamecontroller(clk, newPieceTrigger, controls, colorValues);
         
         if (newPieceTrigger && piece_fetch_state == IDLE) begin
             // piece_to_get <= (piece_to_get % 8) + 1;
-            piece_to_get <= S_PIECE;
+            piece_to_get <= SQUARE_PIECE;
             piece_fetch_state <= SEND_INDEX;
         end
         else begin
@@ -278,7 +295,7 @@ module gamecontroller(clk, newPieceTrigger, controls, colorValues);
             fullboardPieceOnly[l] = boardPieceOnly[l] | storeboardPieceOnly[l];
             boardIfMoveLeft[l] = boardPieceOnly[l] << 1;
             boardIfMoveRight[l] = boardPieceOnly[l] >> 1;
-				lineClearable[l] = & fullboardPieceOnly[l];
+			lineClearable[l] = & fullboardPieceOnly[l];
         end
 
         for (m = 0; m < 11; m = m + 1) begin
@@ -286,12 +303,10 @@ module gamecontroller(clk, newPieceTrigger, controls, colorValues);
             canMoveRight[m] = | (boardIfMoveRight[m] & storeboardPieceOnly[m + 1]);
             nextFrameCollisions[m] = | (boardPieceOnly[m] & storeboardPieceOnly[m + 1]);
         end
-		  
-		  //for (r = 0; r < 12; r = r + 1) begin
-		  //end
 
         // halolo
 
+        canMoveLeftRight[2] = 0;
         canMoveLeftRight[1] = ~(| canMoveLeft);
         canMoveLeftRight[0] = ~(| canMoveRight);
 
@@ -335,6 +350,13 @@ module gamecontroller(clk, newPieceTrigger, controls, colorValues);
                 end
                 else begin
                     piece_drop_state_d = FALLING;
+                end
+            end
+            FLASHING: begin
+                if (flashCounter == 6) begin
+                    piece_drop_state_d = CLEARING;
+                end else begin
+                    piece_drop_state_d = FLASHING;
                 end
             end
             CLEARING: begin

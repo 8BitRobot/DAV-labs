@@ -10,6 +10,7 @@ module boardToColors(board, colorValues);
     parameter S_PIECE      = 4'b0110;
     parameter LINE_PIECE   = 4'b0111;
 	parameter CURSED_PIECE = 4'b1000;
+    parameter FLASH_COLOR     = 4'b1001;
 
     integer i;
     integer j;
@@ -41,6 +42,9 @@ module boardToColors(board, colorValues);
                     end
                     CURSED_PIECE: begin
                         colorValues[i][(j*8) +: 8] = 8'b11000000;
+                    end
+                    FLASH_COLOR: begin
+                        colorValues[i][(j*8) +: 8] = 8'b10010010;
                     end
                     default: begin
                         colorValues[i][(j*8) +: 8] = 8'b00000000;
