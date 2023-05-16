@@ -1,11 +1,11 @@
-module clockDivider(inClock, speed, reset, outClock);
+module clockDivider #(BASE_SPEED=200000000) (inClock, speed, reset, outClock);
 	input inClock;
-	input [11:0] speed;
+	input [19:0] speed;
 	input reset;
 	output reg outClock;
 	// parameter SPEED = 100; //default of 100Hz
 	integer counter = 0;
-	wire [31:0] threshold = 200000000 / (2 * speed);
+	wire [31:0] threshold = BASE_SPEED / (2 * speed);
     
 	initial begin
 		outClock = 0;

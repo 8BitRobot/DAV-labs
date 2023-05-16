@@ -44,7 +44,7 @@ module bonk(clk, dataClock, dataPort, bongoHit, bongoScream);
 
 	logic dataClockTest;
 	 
-	clockDivider downBadClock(clk, 165 * 4, 0, plsRespondClock); // clock for polling
+	clockDivider #(1000000) downBadClock(dataClock, 660, 0, plsRespondClock); // clock for polling
 
     IOBuffer bonkData(dataIn, dataOut, sendingPoll == 1, dataPort);
 
@@ -68,22 +68,37 @@ module bonk(clk, dataClock, dataPort, bongoHit, bongoScream);
 		else begin
 			bitLength <= 0;
 		end
+
+		if (portEdge == 2'b01 || portEdge == 2'b10) begin
+			if (portEdge == 2'b01) begin
+				measuring <= 1;
+			end
+			// if (sendingPoll == 2'b00) then set to or reset to counter_d
+			else begin
+				if (bitLength >= 100) begin
+					received_data[NUM_RECEIVE_BITS - receive_counter - 1] <= 1;
+				end else begin
+					received_data[NUM_RECEIVE_BITS - receive_counter - 1] <= 0;
+				end
+				measuring <= 0;
+			end
+		end
 	end
 
-	always @(posedge (portEdge == 2'b01), posedge (portEdge == 2'b10)) begin
-		if (portEdge == 2'b01) begin
-			measuring <= 1;
-		end
-		// if (sendingPoll == 2'b00) then set to or reset to counter_d
-		else begin
-			if (bitLength >= 100) begin
-				received_data[NUM_RECEIVE_BITS - receive_counter - 1] <= 1;
-			end else begin
-				received_data[NUM_RECEIVE_BITS - receive_counter - 1] <= 0;
-			end
-			measuring <= 0;
-		end
-	end
+	// always @(posedge (portEdge == 2'b01), posedge (portEdge == 2'b10)) begin
+	// 	if (portEdge == 2'b01) begin
+	// 		measuring <= 1;
+	// 	end
+	// 	// if (sendingPoll == 2'b00) then set to or reset to counter_d
+	// 	else begin
+	// 		if (bitLength >= 100) begin
+	// 			received_data[NUM_RECEIVE_BITS - receive_counter - 1] <= 1;
+	// 		end else begin
+	// 			received_data[NUM_RECEIVE_BITS - receive_counter - 1] <= 0;
+	// 		end
+	// 		measuring <= 0;
+	// 	end
+	// end
 
 	always @(posedge dataClock) begin
 		counter <= counter_d;

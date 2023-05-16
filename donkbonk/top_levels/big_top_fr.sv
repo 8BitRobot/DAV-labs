@@ -1,19 +1,24 @@
-module big_top_fr(clk, rst, newPiece, dataPort, seg0, seg1, leds, hsync, vsync, red, green, blue);
+module big_top_fr(clk, rst, newPiece, threshold, dataPort, seg, leds, hsync, vsync, red, green, blue);
     //toptoptop
     input clk, rst;
-	 input newPiece;
+    input newPiece;
+	input [3:0] threshold;
     inout dataPort;
-    output [7:0] seg0, seg1;
-    output reg [9:0] leds = 10'b0000100000;
+    output [7:0] seg [5:0];
+    // output reg [9:0] leds = 10'b0000100000;
+    output [0:9] leds;
     output hsync, vsync;
     output [3:0] red, green, blue;
 
     wire [2:0] controls;
-    wire [11:0]scream;
-    
+    wire [11:0] scream;
+    wire gameclk;
+
+    // dataClock is 1 MHz, vga_clk is 25 MHz
     plls pll(clk, dataClock, vga_clk);
+
+    clockDivider #(1000000) slowasfuck(dataClock, 60, 0, gameclk);
     // rip shiftry
-    sevenSegDispLetters inspacenoonecanhearyou(scream[11:8], scream[7:4], seg1, seg0);
-    vga_top whenthemoduleisabottom(vga_clk, rst, ~newPiece, controls, hsync, vsync, red, green, blue); // prem said this
-    bongoTranslator plumbum(clk, dataClock, dataPort, controls, scream);
+    vga_top whenthemoduleisabottom(vga_clk, gameclk, rst, ~newPiece, controls, hsync, vsync, red, green, blue, leds, seg); // prem said this
+    bongoTranslator plumbum(clk, dataClock, threshold, dataPort, controls, scream);
 endmodule

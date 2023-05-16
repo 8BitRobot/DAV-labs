@@ -1,23 +1,28 @@
-module bongoTranslator(clk, dataClock, dataPort, controls, bongoScream);
+module bongoTranslator(clk, dataClock, threshold, dataPort, controls, bongoScream);
     input logic clk;
     input logic dataClock;
+	input [3:0] threshold;
 	inout dataPort;
     output [2:0] controls;
     output [11:0] bongoScream;
     // output scream;
     
-    logic sampleClk;
+    logic sampleClk = 0;
     // wire [3:0] dig0, dig1;
     wire [7:0] bongoHit;
     wire [11:0] bongoScream;
     wire [7:0] seg0, seg1;
     // assign { dig1, dig0 } = bongoHit;
     
-    logic [1:0] mostRecentlyPressed = 2'b00;
+    // logic [1:0] mostRecentlyPressed = 2'b00;
 
     bonk donk(clk, dataClock, dataPort, bongoHit, bongoScream);
 
-    clockDivider samplingClock(clk, 100000 * 4, 0, sampleClk); // clock for polling
+    // always @(posedge dataClock) begin
+    //     sampleClk <= ~sampleClk;
+    // end
+
+    clockDivider #(1000000) samplingClock(clk, 500000, 0, sampleClk); // clock for polling
 
     always @(posedge sampleClk) begin
         if (bongoHit[3] || bongoHit[1]) begin
@@ -32,7 +37,7 @@ module bongoTranslator(clk, dataClock, dataPort, controls, bongoScream);
             controls[0] <= 0;
         end
 
-        if (bongoScream[7:4] > 4'b1000) begin
+        if (bongoScream[7:0] >= {4'h8, threshold}) begin
             controls[2] <= 1;
         end else begin
             controls[2] <= 0;

@@ -1,7 +1,9 @@
-module vga_top(clk, rst, newPiece, controls, hsync, vsync, red, green, blue);
-    input clk, rst;
+module vga_top(clk, gameclk, rst, newPiece, controls, hsync, vsync, red, green, blue, leds, seg);
+    input clk, gameclk, rst;
 	input newPiece;
     input [2:0] controls;
+    output[0:9] leds;
+    output [7:0] seg  [5:0];
     output hsync, vsync;
     output [3:0] red, green, blue;
     
@@ -13,15 +15,8 @@ module vga_top(clk, rst, newPiece, controls, hsync, vsync, red, green, blue);
 
     wire [9:0] addrWrite;
     wire [7:0] dataIn;
-	 
-	 reg [1:0] newPiece_sr;
-	 wire newPieceTrigger = newPiece_sr == 2'b01;
-	 
-	 always @(posedge clk) begin
-	    newPiece_sr = {newPiece_sr[0], newPiece};
-	 end
 
-    graphicscontroller graphicdesignismypassion(clk, newPieceTrigger, x, y, dataIn, controls, addrWrite);
+    graphicscontroller graphicdesignismypassion(clk, gameclk, newPiece, x, y, dataIn, controls, addrWrite, leds, seg);
     memory_controller sheep(clk, addrWrite, dataIn, hc, vc, dataOut);
     
     wire [2:0] input_red, input_green;
