@@ -10,7 +10,7 @@ module boardToColors(board, colorValues);
     parameter S_PIECE      = 4'b0110;
     parameter LINE_PIECE   = 4'b0111;
 	parameter CURSED_PIECE = 4'b1000;
-    parameter FLASH_COLOR     = 4'b1001;
+    parameter FLASH_COLOR     = 4'b1111;
 
     integer i;
     integer j;

@@ -8,7 +8,7 @@ module gamecontroller #(parameter BOARD_WIDTH=10, BOARD_HEIGHT=12) (gameclk, new
     // clocks
     wire blockenspiel;
     wire sidetoside;
-	wire gameclk;
+	 wire gameclk;
     //
     // clockDivider slowasfuck(clk, 120, 0, gameclk); // IF NOT SIMULATION
     // if we want to speed up dropping this needs to stay a clock divider
@@ -47,7 +47,7 @@ module gamecontroller #(parameter BOARD_WIDTH=10, BOARD_HEIGHT=12) (gameclk, new
     localparam S_PIECE      = 4'b0110;
     localparam LINE_PIECE   = 4'b0111;
     localparam CURSED_PIECE = 4'b1000;
-    localparam FLASH_COLOR  = 4'b1001;
+    localparam FLASH_COLOR  = 4'b1111;
 
     // piece fetch FSM
     localparam SEND_INDEX   = 3'b000;
@@ -67,15 +67,20 @@ module gamecontroller #(parameter BOARD_WIDTH=10, BOARD_HEIGHT=12) (gameclk, new
     lfsr thankschatgpt(piece_fetch_state == IDLE, 0, piece_to_get);
 
     //  piece drop FSM
-    localparam READY    = 3'b000;
-    localparam FALLING  = 3'b001;
-    localparam FLASHING = 3'b010;
-    localparam CLEARING = 3'b011;
-    localparam UPDATING = 3'b100;
-    localparam STORING  = 3'b101;
+    localparam READY      = 3'b000;
+    localparam PREFALLING = 3'b111;
+    localparam FALLING    = 3'b001;
+    localparam MOVING     = 3'b110;
+    localparam FLASHING   = 3'b010;
+    localparam CLEARING   = 3'b011;
+    localparam UPDATING   = 3'b100;
+    localparam STORING    = 3'b101;
 
     reg [2:0] piece_drop_state = READY;
     reg [2:0] piece_drop_state_d;
+
+    reg [1:0] prefallDelay = 0;
+
     reg [0:(BOARD_HEIGHT - 1)] lineClearable;
 	reg [0:(BOARD_HEIGHT - 1)] lineClearable_saved;
     reg [0:(BOARD_HEIGHT - 1)] linesToShift;
@@ -185,7 +190,7 @@ module gamecontroller #(parameter BOARD_WIDTH=10, BOARD_HEIGHT=12) (gameclk, new
 		end
         // first FSM: controlling how the piece falls
         case (piece_drop_state)
-            FALLING: begin
+            MOVING: begin
                 if (controls_pulsed & canMoveLeftRight) begin
                     // moving left or right
                     case(controls_pulsed & canMoveLeftRight)
@@ -220,29 +225,32 @@ module gamecontroller #(parameter BOARD_WIDTH=10, BOARD_HEIGHT=12) (gameclk, new
                 end else if (canRotate & controls_scream_sr == 2'b01) begin
                     rotationState <= rotationState + 1;
                 end
-                
+            end
+            PREFALLING: begin
+                prefallDelay <= prefallDelay + 1;
+            end
+            FALLING: begin
                 // Moving the piece down - shifting all of the rotated board states
-                if (blockenspiel_sr == 2'b01) begin
-                    for (i = BOARD_HEIGHT - 1; i > 0; i = i - 1) begin
-                        boardRotatedStates[0][i] <= boardRotatedStates[0][i-1];
-                        boardPieceOnlyRotatedStates[0][i] <= boardPieceOnlyRotatedStates[0][i-1];
-						boardRotatedStates[1][i] <= boardRotatedStates[1][i-1];
-                        boardPieceOnlyRotatedStates[1][i] <= boardPieceOnlyRotatedStates[1][i-1];
-						boardRotatedStates[2][i] <= boardRotatedStates[2][i-1];
-                        boardPieceOnlyRotatedStates[2][i] <= boardPieceOnlyRotatedStates[2][i-1];
-						boardRotatedStates[3][i] <= boardRotatedStates[3][i-1];
-                        boardPieceOnlyRotatedStates[3][i] <= boardPieceOnlyRotatedStates[3][i-1];
-                    end
-                    // Setting the top lines to 0
-                    boardRotatedStates[0][0] <= 0;
-                    boardRotatedStates[1][0] <= 0;
-                    boardRotatedStates[2][0] <= 0;
-                    boardRotatedStates[3][0] <= 0;
-                    boardPieceOnlyRotatedStates[0][0] <= 0;
-                    boardPieceOnlyRotatedStates[1][0] <= 0;
-                    boardPieceOnlyRotatedStates[2][0] <= 0;
-                    boardPieceOnlyRotatedStates[3][0] <= 0;
+                for (i = BOARD_HEIGHT - 1; i > 0; i = i - 1) begin
+                    boardRotatedStates[0][i] <= boardRotatedStates[0][i-1];
+                    boardPieceOnlyRotatedStates[0][i] <= boardPieceOnlyRotatedStates[0][i-1];
+                    boardRotatedStates[1][i] <= boardRotatedStates[1][i-1];
+                    boardPieceOnlyRotatedStates[1][i] <= boardPieceOnlyRotatedStates[1][i-1];
+                    boardRotatedStates[2][i] <= boardRotatedStates[2][i-1];
+                    boardPieceOnlyRotatedStates[2][i] <= boardPieceOnlyRotatedStates[2][i-1];
+                    boardRotatedStates[3][i] <= boardRotatedStates[3][i-1];
+                    boardPieceOnlyRotatedStates[3][i] <= boardPieceOnlyRotatedStates[3][i-1];
                 end
+                // Setting the top lines to 0
+                boardRotatedStates[0][0] <= 0;
+                boardRotatedStates[1][0] <= 0;
+                boardRotatedStates[2][0] <= 0;
+                boardRotatedStates[3][0] <= 0;
+                boardPieceOnlyRotatedStates[0][0] <= 0;
+                boardPieceOnlyRotatedStates[1][0] <= 0;
+                boardPieceOnlyRotatedStates[2][0] <= 0;
+                boardPieceOnlyRotatedStates[3][0] <= 0;
+                prefallDelay <= 0;
             end
             // Flash the line before clearing it
             FLASHING: begin
@@ -261,6 +269,7 @@ module gamecontroller #(parameter BOARD_WIDTH=10, BOARD_HEIGHT=12) (gameclk, new
                     end
                     lineClearable_saved[n] <= lineClearable[n];
                 end
+					 flashCounter <= 0;
             end
             // Shifting lines down if there are any to be shifted
             UPDATING: begin
@@ -388,12 +397,12 @@ module gamecontroller #(parameter BOARD_WIDTH=10, BOARD_HEIGHT=12) (gameclk, new
             boardIfMoveRight[2][l]          = boardRotatedStates[2][l] >> 4;
             boardIfMoveRight[3][l]          = boardRotatedStates[3][l] >> 4;
 
-	        lineClearable[l]       = & (storeboardPieceOnly[l] | boardPieceOnly[l]);
-            linesToShift[l]        = | ((lineClearable | lineClearable_saved) & ( {BOARD_HEIGHT{1'b1}} >> l));
-            canRotateRows[l]       = | (storeboardPieceOnly[l] & boardPieceOnlyRotatedStates[rotationState + 1][l]);
+	        lineClearable[l]                = & (storeboardPieceOnly[l] | boardPieceOnly[l]);
+            linesToShift[l]                 = | ((lineClearable | lineClearable_saved) & ( {BOARD_HEIGHT{1'b1}} >> l));
+            canRotateRows[l]                = | (storeboardPieceOnly[l] & boardPieceOnlyRotatedStates[rotationState + 1][l]);
 
-            canMoveLeft[l]         = | (boardPieceOnlyIfMoveLeft[rotationState][l] & storeboardPieceOnly[l]);
-            canMoveRight[l]        = | (boardPieceOnlyIfMoveRight[rotationState][l] & storeboardPieceOnly[l]);
+            canMoveLeft[l]                  = | (boardPieceOnlyIfMoveLeft[rotationState][l] & storeboardPieceOnly[l]);
+            canMoveRight[l]                 = | (boardPieceOnlyIfMoveRight[rotationState][l] & storeboardPieceOnly[l]);
         end
 
         for (m = 0; m < BOARD_HEIGHT - 1; m = m + 1) begin
@@ -406,24 +415,33 @@ module gamecontroller #(parameter BOARD_WIDTH=10, BOARD_HEIGHT=12) (gameclk, new
         canMoveLeftRight[1] = ~(| canMoveLeft);
         canMoveLeftRight[0] = ~(| canMoveRight);
 
-        case(rotationState)
-            2'b00: begin
-                board = boardRotatedStates[0];
-                boardPieceOnly = boardPieceOnlyRotatedStates[0];
+        for (integer z = 0; z < BOARD_HEIGHT; z = z + 1) begin
+            if (piece_drop_state == FLASHING && flashCounter % 2 == 0 && lineClearable[z]) begin
+                board[z] = {(BOARD_WIDTH-1){FLASH_COLOR}};
+            end else begin
+                board[z] = boardRotatedStates[rotationState][z];
             end
-            2'b01: begin
-                board = boardRotatedStates[1];
-                boardPieceOnly = boardPieceOnlyRotatedStates[1];
-            end
-            2'b10: begin
-                board = boardRotatedStates[2];
-                boardPieceOnly = boardPieceOnlyRotatedStates[2];
-            end
-            2'b11: begin
-                board = boardRotatedStates[3];
-                boardPieceOnly = boardPieceOnlyRotatedStates[3];
-            end
-        endcase
+            boardPieceOnly[z] = boardPieceOnlyRotatedStates[rotationState][z];
+        end
+
+        // case(rotationState)
+        //     2'b00: begin
+        //         board = boardRotatedStates[0] ;
+        //         boardPieceOnly = boardPieceOnlyRotatedStates[0];
+        //     end
+        //     2'b01: begin
+        //         board = boardRotatedStates[1];
+        //         boardPieceOnly = boardPieceOnlyRotatedStates[1];
+        //     end
+        //     2'b10: begin
+        //         board = boardRotatedStates[2];
+        //         boardPieceOnly = boardPieceOnlyRotatedStates[2];
+        //     end
+        //     2'b11: begin
+        //         board = boardRotatedStates[3];
+        //         boardPieceOnly = boardPieceOnlyRotatedStates[3];
+        //     end
+        // endcase
 
         case (piece_fetch_state) 
             SEND_ADDRESS: begin
@@ -452,16 +470,27 @@ module gamecontroller #(parameter BOARD_WIDTH=10, BOARD_HEIGHT=12) (gameclk, new
                     piece_drop_state_d = READY;
                 end
             end
+            PREFALLING: begin
+                if (prefallDelay == 3) begin
+                    piece_drop_state_d = FALLING;
+                end else begin
+                    piece_drop_state_d = PREFALLING;
+                end
+            end
             FALLING: begin
+                piece_drop_state_d = MOVING;
+            end
+            MOVING: begin
                 if ((| boardPieceOnly[BOARD_HEIGHT - 1]) || (| nextFrameCollisions)) begin
                     if (| lineClearable) begin
-                        piece_drop_state_d = CLEARING;
+                        piece_drop_state_d = FLASHING;
                     end else begin
                         piece_drop_state_d = STORING;
                     end
-                end
-                else begin
-                    piece_drop_state_d = FALLING;
+                end else if (blockenspiel_sr == 2'b01) begin
+                    piece_drop_state_d = PREFALLING;
+                end else begin
+                    piece_drop_state_d = MOVING;
                 end
             end
             FLASHING: begin

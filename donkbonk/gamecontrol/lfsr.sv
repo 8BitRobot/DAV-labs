@@ -21,6 +21,12 @@ module lfsr(
         end
     end
 
+    always_comb begin
+        case (state[5:0])
+
+        endcase
+    end
+
     assign randOut = {1'b0, state[2:0]} + 1; // use the LFSR output as random number
 
 endmodule
