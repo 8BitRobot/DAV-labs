@@ -1,9 +1,7 @@
-module vga_top(clk, gameclk, rst, newPiece, controls, hsync, vsync, red, green, blue, leds, seg);
-    input clk, gameclk, rst;
-	input newPiece;
+module vga_top(clk, gameclk, rsts, controls, hsync, vsync, red, green, blue);
+    input clk, gameclk;
+    input [1:0] rsts;
     input [2:0] controls;
-    output[0:9] leds;
-    output [7:0] seg  [5:0];
     output hsync, vsync;
     output [3:0] red, green, blue;
     
@@ -16,7 +14,7 @@ module vga_top(clk, gameclk, rst, newPiece, controls, hsync, vsync, red, green, 
     wire [9:0] addrWrite;
     wire [7:0] dataIn;
 
-    graphicscontroller graphicdesignismypassion(clk, gameclk, newPiece, x, y, dataIn, controls, addrWrite, leds, seg);
+    graphicscontroller graphicdesignismypassion(gameclk, rsts[0], x, y, dataIn, controls, addrWrite);
     memory_controller sheep(clk, addrWrite, dataIn, hc, vc, dataOut);
     
     wire [2:0] input_red, input_green;
@@ -26,7 +24,7 @@ module vga_top(clk, gameclk, rst, newPiece, controls, hsync, vsync, red, green, 
     assign input_green = dataOut[4:2];
     assign input_blue = dataOut[1:0];
 
-    vga disp(clk, input_red, input_green, input_blue, rst, hc, vc, hsync, vsync, red, green, blue);
+    vga disp(clk, input_red, input_green, input_blue, rsts[1], hc, vc, hsync, vsync, red, green, blue);
 endmodule
 
 // `timescale 1ns/1ns

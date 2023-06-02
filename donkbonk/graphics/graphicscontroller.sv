@@ -1,19 +1,25 @@
-module graphicscontroller(clk, gameclk, newPiece, x, y, dataOut, controls, address, leds, seg);
-	localparam BOARD_COLS = 8;
-    input clk;
+module graphicscontroller(gameclk, rst, x, y, dataOut, controls, address);
+	localparam BOARD_WIDTH = 12; // 12x14
+    localparam BOARD_HEIGHT = 14;
+
+    localparam BOARD_LEFT = 0;
+    localparam BOARD_RIGHT = BOARD_LEFT + (BOARD_WIDTH-2) + 1;
+    localparam BOARD_BOTTOM = 0;
+    localparam BOARD_TOP = BOARD_BOTTOM + BOARD_HEIGHT + 1;
     input gameclk;
-	input newPiece;
+	input rst;
     input [5:0] x; // 40 // 800 // goes from 0 to 40
     input [5:0] y; // 24 // 525 // goes from 0 to 26 ig
     input [2:0] controls;
     output reg [7:0] dataOut; // color going out
     output reg [9:0] address;
-    output [0:9] leds;
-    output [7:0] seg [5:0];
-    wire [0:79] colorValues [0:11];
+    wire [0:(BOARD_WIDTH * 8 - 1)] colorValues [0:(BOARD_HEIGHT - 1)];
         // row and column are 640 by 480
         // divided by 20, that's 32 by 24
-    gamecontroller #(10, 12) hollowknight(gameclk, newPiece, controls, colorValues, leds, seg);
+    gamecontroller #(BOARD_WIDTH, BOARD_HEIGHT) hollowknight(gameclk, rst, controls, colorValues);
+
+    wire [5:0] x_scaled = x / 2;
+    wire [5:0] y_scaled = y / 2;
 
     always_comb begin
         if (x >= 32 || y >= 24) begin
@@ -23,13 +29,15 @@ module graphicscontroller(clk, gameclk, newPiece, x, y, dataOut, controls, addre
             address = y * 32 + x;
         end
 
-        if (x == 9 || x == 26) begin
+        if (y_scaled == BOARD_LEFT ||
+            y_scaled == BOARD_RIGHT ||
+            (x_scaled == BOARD_BOTTOM && BOARD_LEFT <= y_scaled && y_scaled <= BOARD_RIGHT) ||
+            (x_scaled == BOARD_TOP && BOARD_LEFT <= y_scaled && y_scaled <= BOARD_RIGHT)) begin
             dataOut = 8'b11111111;
         end
-        else if ((9 < x) && (26 > x)) begin
-            // find
-            // dataOut = 8'b11100000;
-            dataOut = colorValues[y/2][((x - 8)/2 * 8) +: 8];
+        // Board
+        else if ((BOARD_LEFT < y_scaled) && (y_scaled < BOARD_RIGHT) && (BOARD_BOTTOM < x_scaled) && (BOARD_TOP > x_scaled)) begin
+            dataOut = colorValues[(BOARD_TOP - 1) - x_scaled][((y_scaled - BOARD_LEFT) * 8) +: 8];
         end
         else begin
             dataOut = 8'b0;

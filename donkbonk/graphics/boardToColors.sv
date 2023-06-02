@@ -1,6 +1,6 @@
-module boardToColors(board, colorValues);
-    input [0:39] board [0:11];
-    output reg [0:79] colorValues [0:11];
+module boardToColors #(parameter BOARD_WIDTH=10, BOARD_HEIGHT=12)(board, colorValues);
+    input [0:BOARD_WIDTH * 4 - 1] board [0:BOARD_HEIGHT-1];
+    output reg [0:BOARD_WIDTH * 8 - 1] colorValues [0:BOARD_HEIGHT-1];
 
     parameter T_PIECE      = 4'b0001;
     parameter SQUARE_PIECE = 4'b0010;
@@ -16,8 +16,8 @@ module boardToColors(board, colorValues);
     integer j;
 
     always_comb begin
-        for (i = 0; i < 12; i = i + 1) begin
-            for (j = 0; j < 10; j = j + 1) begin
+        for (i = 0; i < BOARD_HEIGHT; i = i + 1) begin
+            for (j = 0; j < BOARD_WIDTH; j = j + 1) begin
                 case (board[i][(j*4) +: 4])
                     T_PIECE: begin
                         colorValues[i][(j*8) +: 8] = 8'b11110000;
