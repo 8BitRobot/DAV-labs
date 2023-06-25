@@ -1,0 +1,77 @@
+/*
+WARNING: Do NOT edit the input and output ports in this file in a text
+editor if you plan to continue editing the block that represents it in
+the Block Editor! File corruption is VERY likely to occur.
+*/
+/*
+Copyright (C) 2022  Intel Corporation. All rights reserved.
+Your use of Intel Corporation's design tools, logic functions 
+and other software and tools, and any partner logic 
+functions, and any output files from any of the foregoing 
+(including device programming or simulation files), and any 
+associated documentation or information are expressly subject 
+to the terms and conditions of the Intel Program License 
+Subscription Agreement, the Intel Quartus Prime License Agreement,
+the Intel FPGA IP License Agreement, or other applicable license
+agreement, including, without limitation, that your use is for
+the sole purpose of programming logic devices manufactured by
+Intel and sold by Intel or its authorized distributors.  Please
+refer to the applicable agreement for further details, at
+https://fpgasoftware.intel.com/eula.
+*/
+(header "symbol" (version "1.2"))
+(symbol
+	(rect 0 0 408 208)
+	(text "plls" (rect 184 0 232 32)(font "Arial" (font_size 10)))
+	(text "inst" (rect 8 182 42 204)(font "Arial" ))
+	(port
+		(pt 0 80)
+		(input)
+		(text "inclk0" (rect 0 0 62 24)(font "Arial" (font_size 8)))
+		(text "inclk0" (rect 4 56 55 79)(font "Arial" (font_size 8)))
+		(line (pt 0 80)(pt 72 80))
+	)
+	(port
+		(pt 0 112)
+		(input)
+		(text "areset" (rect 0 0 70 24)(font "Arial" (font_size 8)))
+		(text "areset" (rect 4 88 62 111)(font "Arial" (font_size 8)))
+		(line (pt 0 112)(pt 72 112))
+	)
+	(port
+		(pt 408 80)
+		(output)
+		(text "c0" (rect 0 0 27 24)(font "Arial" (font_size 8)))
+		(text "c0" (rect 381 56 402 79)(font "Arial" (font_size 8)))
+	)
+	(drawing
+		(text "MAX 10" (rect 314 177 694 375)(font "Arial" ))
+		(text "inclk0 frequency: 50.000 MHz" (rect 82 70 412 161)(font "Arial" ))
+		(text "Operation Mode: Normal" (rect 82 93 368 207)(font "Arial" ))
+		(text "Clk " (rect 83 129 193 279)(font "Arial" ))
+		(text "Ratio" (rect 119 129 280 279)(font "Arial" ))
+		(text "Ph (dg)" (rect 167 129 394 279)(font "Arial" ))
+		(text "DC (%)" (rect 233 129 526 279)(font "Arial" ))
+		(text "c0" (rect 89 153 197 327)(font "Arial" ))
+		(text "1/50" (rect 122 153 280 327)(font "Arial" ))
+		(text "0.00" (rect 179 153 394 327)(font "Arial" ))
+		(text "50.00" (rect 240 153 527 327)(font "Arial" ))
+		(line (pt 0 0)(pt 409 0))
+		(line (pt 409 0)(pt 409 209))
+		(line (pt 0 209)(pt 409 209))
+		(line (pt 0 0)(pt 0 209))
+		(line (pt 80 127)(pt 296 127))
+		(line (pt 80 150)(pt 296 150))
+		(line (pt 80 174)(pt 296 174))
+		(line (pt 80 127)(pt 80 174))
+		(line (pt 116 127)(pt 116 174)(line_width 3))
+		(line (pt 164 127)(pt 164 174)(line_width 3))
+		(line (pt 230 127)(pt 230 174)(line_width 3))
+		(line (pt 295 127)(pt 295 174))
+		(line (pt 72 64)(pt 367 64))
+		(line (pt 367 64)(pt 367 191))
+		(line (pt 72 191)(pt 367 191))
+		(line (pt 72 64)(pt 72 191))
+		(line (pt 407 80)(pt 367 80))
+	)
+)
