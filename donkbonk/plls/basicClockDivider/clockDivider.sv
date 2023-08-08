@@ -3,9 +3,8 @@ module clockDivider #(BASE_SPEED=200000000) (inClock, speed, reset, outClock);
 	input [19:0] speed;
 	input reset;
 	output reg outClock;
-	// parameter SPEED = 100; //default of 100Hz
 	integer counter = 0;
-	wire [31:0] threshold = BASE_SPEED / (2 * speed);
+	wire [31:0] threshold = BASE_SPEED / speed;
     
 	initial begin
 		outClock = 0;
@@ -18,7 +17,7 @@ module clockDivider #(BASE_SPEED=200000000) (inClock, speed, reset, outClock);
 			outClock <= 0;
 		end
 		else begin
-			if(counter == threshold) begin
+			if(counter == threshold || counter == threshold / 2) begin
 				outClock <= ~outClock;
 				counter <= 0;
 			end
