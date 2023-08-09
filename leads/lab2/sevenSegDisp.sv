@@ -1,6 +1,6 @@
 module sevenSegDisp(value, enable, segs);
 	input enable;
-	input [23:0] value;
+	input [15:0] value;
 	output [7:0] segs [0:5];
 	reg [3:0] inputs [0:5];
 

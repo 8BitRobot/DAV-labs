@@ -9,8 +9,6 @@ module clockDivider #(BASE_SPEED=50000000) (clk, speed, reset, outClk);
 	reg [$clog2(BASE_SPEED)+1:0] counter = 0;
 	wire [$clog2(BASE_SPEED)+1:0] threshold = BASE_SPEED / currentSpeed;
 	
-	//assign threshold = BASE_SPEED / currentSpeed;
-	
 	always @(posedge clk) begin
 		if (reset || counter == threshold - 1) begin
 			counter <= 0;

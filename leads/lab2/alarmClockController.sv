@@ -1,19 +1,21 @@
-module alarmClockController(mainClk, timeClk, switches, pauseResume, reset, timeRemaining, shouldBeep);
-	input mainClk;
-	input timeClk;
-	input [8:0] switches;
-	input pauseResume;
-	input reset;
-	output reg [15:0] timeRemaining;
-	output shouldBeep;
-	
-	reg [1:0] alarmClockState = 0;
-	reg [1:0] alarmClockState_d;
+module alarmClockController(
+	input mainClk,
+	input timeClk,
+	input [8:0] switches,
+	input pauseResume,
+	input reset,
+	output reg [15:0] timeRemaining,
+	output shouldBeep
+);
+
 	
 	localparam SET = 2'b00;
 	localparam RUN = 2'b01;
 	localparam PAUSE = 2'b10;
 	localparam BEEP = 2'b11;
+	
+	reg [1:0] alarmClockState = SET;
+	reg [1:0] alarmClockState_d;
 	
 	assign shouldBeep = alarmClockState == BEEP;
 	

@@ -1,11 +1,11 @@
-module alarmClock_top(clk, switches, pause, reset, segs, buzzer);
-
-	input        clk;
-	input  [9:0] switches;
-	input        pause;
-	input        reset;
-	output [7:0] segs [0:5];
-	output       buzzer;
+module alarmClock_top(
+	input        clk,
+	input  [9:0] switches,
+	input        pause,
+	input        reset,
+	output [7:0] segs [0:5],
+	output       buzzer
+);
 	
 	wire divClk;
 	wire flashClk;
@@ -27,5 +27,5 @@ module alarmClock_top(clk, switches, pause, reset, segs, buzzer);
 									.timeRemaining(timeRemaining),
 									.shouldBeep(buzzerEnable));
 	
-	sevenSegDisp disp(.value(timeRemaining), .enable(buzzerEnable & flashClk), .segs(segs));
+	sevenSegDisp disp(.value(timeRemaining), .enable(~buzzerEnable | flashClk), .segs(segs));
 endmodule
