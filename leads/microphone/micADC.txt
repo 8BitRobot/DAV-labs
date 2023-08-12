@@ -1,0 +1,5 @@
+There should also be a large folder containing all the files generated
+by Quartus for the microphone ADC IP, which in our instantiation we've
+named `micADC`; however, that entire folder is rather pointless to
+include, so we're leaving it out here. Create the ADC IP yourself using
+the instructions in the lab spec.

@@ -8,5 +8,7 @@
 **/*.rpt
 **/*.json
 **/**.bak
+**/**.sopcinfo
 **/**.q*
 !**/**.qpf
+leads/microphone/micADC
