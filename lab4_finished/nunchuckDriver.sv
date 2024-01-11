@@ -46,18 +46,15 @@ module nunchuckDriver(clock, SDApin, SCLpin, stick_x, stick_y, accel_x, accel_y,
 	reg [7:0] addr;
 	reg [7:0] dataIn [MAX_BYTES-1:0] = '{default: '0};
 	
-	
 	wire driverDisable = state == DONE;			//disables LL driver when idle
 	wire done;											//carries done flag from LL driver
 	
 	reg [2:0] handshakeDone = 0;
-	
 
 	// submodule declarations
 	I2C #(MAX_BYTES) UUT(i2c_clock, rst, driverDisable, deviceAddr, addr, numBytes_d, dataIn, dataOut_d, write, communicate, done, SCLpin, SDApin);
 	
 	nunchuck_translator UUT2(dataOut, stick_x, stick_y, accel_x, accel_y, accel_z, z, c);
-	
 	
 	/*
 			NOTE: 
@@ -66,8 +63,8 @@ module nunchuckDriver(clock, SDApin, SCLpin, stick_x, stick_y, accel_x, accel_y,
 			This requirement will make more sense after Lecture 5
 	*/
 	
-	clock_divider #(50000000) i2c_clock_uut(clock, I2C_CLOCK_SPEED, rst, i2c_clock); 		//this clock corresponds to each I2C instruction 
-	clock_divider #(50000000) polling_clock_uut(clock, MESSAGE_RATE, rst, polling_clock); //clock is for spacing out messages to send
+	clockDivider #(I2C_CLOCK_SPEED) i2c_clock_uut(clock, i2c_clock, rst); 		//this clock corresponds to each I2C instruction 
+	clockDivider #(MESSAGE_RATE) polling_clock_uut(clock, polling_clock, rst); //clock is for spacing out messages to send
 	
 	// Polling Clock 
 	

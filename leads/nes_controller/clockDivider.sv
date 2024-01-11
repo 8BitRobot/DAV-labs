@@ -1,4 +1,4 @@
-module clockDivider #(BASE_SPEED=200000000) (inClock, speed, reset, outClock);
+module clockDivider #(BASE_SPEED=50000000) (inClock, speed, reset, outClock);
 	input inClock;
 	input [19:0] speed;
 	input reset;

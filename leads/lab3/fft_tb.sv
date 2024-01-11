@@ -33,14 +33,14 @@ module fft_tb(
 		reset = 0;
 		start = 0;
 		
-		samples_32[0] = 0;
-		samples_32[1] = {16'd100, 16'd0};
-		samples_32[2] = 0;
-		samples_32[3] = {16'd100, 16'd0};
-		samples_16[0] = 0;
-		samples_16[1] = {8'd100, 8'd0};
-		samples_16[2] = 0;
-		samples_16[3] = {8'd100, 8'd0};
+		samples_32[0] = {16'd100, 16'd0};
+		samples_32[1] = {16'd150, 16'd0};
+		samples_32[2] = {16'd200, 16'd0};
+		samples_32[3] = {16'd250, 16'd0};
+		samples_16[0] = {8'd100, 8'd0};
+		samples_16[1] = {8'd150, 8'd0};
+		samples_16[2] = {8'd200, 8'd0};
+		samples_16[3] = {8'd250, 8'd0};
 
 		#100 start = 1;
 	end

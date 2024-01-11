@@ -33,20 +33,11 @@
 //https://fpgasoftware.intel.com/eula.
 
 module plls (
-	areset,
 	inclk0,
 	c0);
 
-	input	  areset;
 	input	  inclk0;
 	output	  c0;
-`ifndef ALTERA_RESERVED_QIS
-// synopsys translate_off
-`endif
-	tri0	  areset;
-`ifndef ALTERA_RESERVED_QIS
-// synopsys translate_on
-`endif
 
 endmodule
 
@@ -105,7 +96,7 @@ endmodule
 // Retrieval info: PRIVATE: PHASE_SHIFT_STEP_ENABLED_CHECK STRING "0"
 // Retrieval info: PRIVATE: PHASE_SHIFT_UNIT0 STRING "deg"
 // Retrieval info: PRIVATE: PLL_ADVANCED_PARAM_CHECK STRING "0"
-// Retrieval info: PRIVATE: PLL_ARESET_CHECK STRING "1"
+// Retrieval info: PRIVATE: PLL_ARESET_CHECK STRING "0"
 // Retrieval info: PRIVATE: PLL_AUTOPLL_CHECK NUMERIC "1"
 // Retrieval info: PRIVATE: PLL_ENHPLL_CHECK NUMERIC "0"
 // Retrieval info: PRIVATE: PLL_FASTPLL_CHECK NUMERIC "0"
@@ -150,7 +141,7 @@ endmodule
 // Retrieval info: CONSTANT: OPERATION_MODE STRING "NORMAL"
 // Retrieval info: CONSTANT: PLL_TYPE STRING "AUTO"
 // Retrieval info: CONSTANT: PORT_ACTIVECLOCK STRING "PORT_UNUSED"
-// Retrieval info: CONSTANT: PORT_ARESET STRING "PORT_USED"
+// Retrieval info: CONSTANT: PORT_ARESET STRING "PORT_UNUSED"
 // Retrieval info: CONSTANT: PORT_CLKBAD0 STRING "PORT_UNUSED"
 // Retrieval info: CONSTANT: PORT_CLKBAD1 STRING "PORT_UNUSED"
 // Retrieval info: CONSTANT: PORT_CLKLOSS STRING "PORT_UNUSED"
@@ -192,10 +183,8 @@ endmodule
 // Retrieval info: CONSTANT: PORT_extclk3 STRING "PORT_UNUSED"
 // Retrieval info: CONSTANT: WIDTH_CLOCK NUMERIC "5"
 // Retrieval info: USED_PORT: @clk 0 0 5 0 OUTPUT_CLK_EXT VCC "@clk[4..0]"
-// Retrieval info: USED_PORT: areset 0 0 0 0 INPUT GND "areset"
 // Retrieval info: USED_PORT: c0 0 0 0 0 OUTPUT_CLK_EXT VCC "c0"
 // Retrieval info: USED_PORT: inclk0 0 0 0 0 INPUT_CLK_EXT GND "inclk0"
-// Retrieval info: CONNECT: @areset 0 0 0 0 areset 0 0 0 0
 // Retrieval info: CONNECT: @inclk 0 0 1 1 GND 0 0 0 0
 // Retrieval info: CONNECT: @inclk 0 0 1 0 inclk0 0 0 0 0
 // Retrieval info: CONNECT: c0 0 0 0 0 @clk 0 0 1 0

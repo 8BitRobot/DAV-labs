@@ -1,24 +1,11 @@
-module nes_controller_top(clk, nes_data, nes_latch, nes_clock);
-	input clk;
-	input nes_data;
-	output logic nes_latch;
-	output logic nes_clock;
+module nes_controller_top(input clk, input nes_data, output nes_latch, output nes_clock, output [9:0] leds);
+
+	// plls DataClock(clk, nes_clock); // 1 MHz
+	assign nes_clock = clk;
 	
-	logic polling_clock;
-	logic clock_not_started = 1;
+	wire [7:0] controls;
+	nes_controller nc(nes_clock, nes_data, nes_latch, controls);
 	
-	logic [0:7] controls = 8'b0;
+	assign leds = { 2'b00, controls };
 	
-	//plls DataClock(0, clk, nes_clock); // 1 MHz
-	clockDivider #(50000000) DataClock(clk, 1000000, 0, nes_clock); // 1 MHz
-	clockDivider #( 1000000) PollingClock(nes_clock, 750, 0, polling_clock); // 750 Hz
-	
-	always @(posedge nes_clock) begin
-		if (clock_not_started) begin
-			clock_not_started <= 0;
-			nes_latch <= 1;
-		end else begin
-			nes_latch <= 0;
-		end
-	end
 endmodule
