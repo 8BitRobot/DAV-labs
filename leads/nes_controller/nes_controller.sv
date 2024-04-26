@@ -1,27 +1,31 @@
-module nes_controller(input nes_clock, input nes_data, output logic nes_latch, output logic [7:0] controls);
-	logic polling_clock;
-	logic clock_not_started = 1;
-	
+module nes_controller(
+	input nes_clock, 
+	input nes_data, 
+	output logic nes_latch, 
+	output logic [7:0] controls
+);	
+	// divide the NES clock here to determine when to pulse the latch :)
 	clockDivider #(1000000) PollingClock(nes_clock, 80000, 0, polling_clock); // 80 kHz
 	
-	reg [1:0] polling_clock_sr = 2'b0;
+	logic polling_clock;
+	logic [1:0] polling_clock_sr = 2'b0;
 	
-	reg reading = 0;
-	reg [2:0] read_count = 0;
+	logic reading = 0;
+	logic [2:0] read_count = 0;
 	
-	logic [7:0] controls_read;
-	initial begin
-		controls_read = 8'b0;
-	end
+	logic [7:0] controls_read = 8'b0;
 	
 	always @(posedge nes_clock) begin
+		// capture the edge of the polling clock
 		polling_clock_sr <= { polling_clock_sr[0], polling_clock };
 		
 		// if it's time to poll (i.e. if the polling clock has a posedge),
-		// pulse LATCH
+		// raise LATCH
 		if (polling_clock_sr == 2'b01) begin
 			nes_latch <= 1;
-		end else begin
+		end
+		// otherwise, lower LATCH and enable DATA reading
+		else begin
 			if (nes_latch == 1) begin
 				reading <= 1;
 			end

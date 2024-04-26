@@ -1,10 +1,10 @@
 module memory_controller(
-	input            clk;
-   input      [9:0] addrWrite;
-   input      [7:0] dataWrite;
-   input      [9:0] addrRead_h;
-   input      [9:0] addrRead_v;
-   output reg [7:0] dataRead;
+	input            clk,
+   input      [9:0] addrWrite,
+   input      [7:0] dataWrite,
+   input      [9:0] addrRead_h,
+   input      [9:0] addrRead_v,
+   output reg [7:0] dataRead
 );
 // ping pong :D
     

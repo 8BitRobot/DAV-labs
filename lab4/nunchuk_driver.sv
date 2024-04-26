@@ -2,9 +2,6 @@ module nunchuk_driver(
 	input clk,
 	input polling_clk,
 	output reg [7:0] data_read_regs [0:5],
-	/* */
-	output [7:0] test_out,
-	/* */
 	output reg scl,
    inout sda
 );
@@ -12,9 +9,8 @@ module nunchuk_driver(
 	localparam IDLE = 0;
 	localparam HANDSHAKE1 = 1;
 	localparam HANDSHAKE2 = 2;
-	localparam DUMMY_WRITE = 3;
-	localparam READING = 4;
-	localparam TEST_STATE = 5;
+	localparam READING = 3;
+	localparam DUMMY_WRITING = 4;
 	
 	localparam IDLE_CMD       = 0;
 	localparam START          = 1;
@@ -35,9 +31,8 @@ module nunchuk_driver(
 	
 	wire [7:0] data_read [0:5];
 	
-	wire [7:0] test_out_i;
-	
-	assign test_out = { test_out_i[5:2], state, 1'b0 };
+	wire [7:0] test_out;
+	assign test_out = { 4'b0, state, 1'b0 };
 	
 	i2c_driver_new I2C(
 		clk,
@@ -46,7 +41,6 @@ module nunchuk_driver(
 		data_write,
 		done,
 		data_read,
-		test_out_i,
 		scl,
 		sda
 	);
@@ -78,7 +72,7 @@ module nunchuk_driver(
 				data_write = '{ DEVICE_ADDR_WRITE, 8'hF0, 8'h55, 8'h00, 0, 0 };
 			end
 			HANDSHAKE2: begin
-				next_state = DUMMY_WRITE;
+				next_state = DUMMY_WRITING;
 				
 				commands =
 					'{ START, WRITE_BYTE, WRITE_BYTE, WRITE_BYTE, STOP, IDLE_CMD, IDLE_CMD, IDLE_CMD, IDLE_CMD,
@@ -86,33 +80,25 @@ module nunchuk_driver(
 						
 				data_write = '{ DEVICE_ADDR_WRITE, 8'hFB, 8'h00, 0, 0, 0 };
 			end
-			
-			DUMMY_WRITE: begin
-				next_state = READING;
-				
-				commands =
-					'{ START, WRITE_BYTE, WRITE_BYTE, START, WRITE_BYTE, READ_BYTE_ACK, READ_BYTE_ACK, READ_BYTE_ACK,
-					   READ_BYTE_ACK, READ_BYTE_ACK, READ_BYTE_NACK, STOP, IDLE_CMD, IDLE_CMD, IDLE_CMD, IDLE_CMD };
-				
-				data_write = '{ DEVICE_ADDR_WRITE, 8'h00, DEVICE_ADDR_READ, 0, 0, 0 };
-			end
-
 			READING: begin
+				next_state = DUMMY_WRITING;
+				
+				commands =
+					'{ START, WRITE_BYTE, READ_BYTE_ACK, READ_BYTE_ACK, READ_BYTE_ACK,
+					   READ_BYTE_ACK, READ_BYTE_ACK, READ_BYTE_NACK, STOP, IDLE_CMD, IDLE_CMD, IDLE_CMD, IDLE_CMD,
+						IDLE_CMD, IDLE_CMD, IDLE_CMD };
+				
+				data_write = '{ DEVICE_ADDR_READ, 0, 0, 0, 0, 0 };
+			end
+			DUMMY_WRITING: begin
 				next_state = READING;
 				
 				commands =
-					'{ START, WRITE_BYTE, WRITE_BYTE, START, WRITE_BYTE, READ_BYTE_ACK, READ_BYTE_ACK, READ_BYTE_ACK,
-					   READ_BYTE_ACK, READ_BYTE_ACK, READ_BYTE_NACK, STOP, IDLE_CMD, IDLE_CMD, IDLE_CMD, IDLE_CMD };
-				
-				data_write = '{ DEVICE_ADDR_WRITE, 8'h00, DEVICE_ADDR_READ, 0, 0, 0 };
-			end
-			TEST_STATE: begin
-				next_state = TEST_STATE;
-				commands =
-					'{ START, STOP, IDLE_CMD, IDLE_CMD, IDLE_CMD, IDLE_CMD, IDLE_CMD, IDLE_CMD, IDLE_CMD, IDLE_CMD,
-						IDLE_CMD, IDLE_CMD, IDLE_CMD, IDLE_CMD, IDLE_CMD, IDLE_CMD };
+					'{ START, WRITE_BYTE, WRITE_BYTE, STOP,
+						IDLE_CMD, IDLE_CMD, IDLE_CMD, IDLE_CMD, IDLE_CMD, IDLE_CMD, IDLE_CMD, IDLE_CMD, IDLE_CMD,
+						IDLE_CMD, IDLE_CMD, IDLE_CMD };
 						
-				data_write = '{ DEVICE_ADDR_WRITE, 8'hF0, 8'h55, 0, 0, 0 };
+				data_write = '{ DEVICE_ADDR_WRITE, 8'h00, 0, 0, 0, 0 };
 			end
 			default: begin
 				next_state = IDLE;
